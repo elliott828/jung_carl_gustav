@@ -1,0 +1,4 @@
+.wanman/
+.wanman-run-logs/
+node_modules/
+dist/
