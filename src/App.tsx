@@ -22,6 +22,7 @@ function App() {
   const [query, setQuery] = useState('')
 
   const selected = byId(selectedId)
+  const activeTrackLabel = track === 'people' ? copy.people[lang] : copy.theories[lang]
   const filteredNodes = useMemo(() => {
     const term = query.trim().toLowerCase()
     if (!term) return nodes
@@ -34,10 +35,12 @@ function App() {
   const trackItems = filteredNodes.filter((node) => node.track === track)
 
   return (
-    <main>
+    <main lang={lang}>
       <header className="topbar">
-          <div className="brand">
-          <Sparkles size={25} aria-hidden />
+        <div className="brand">
+          <span className="brand-mark">
+            <Sparkles size={24} aria-hidden />
+          </span>
           <div>
             <h1>{copy.appTitle[lang]}</h1>
             <p>{copy.appSubtitle[lang]}</p>
@@ -61,6 +64,10 @@ function App() {
 
       <section className="workspace">
         <aside className="rail">
+          <div className="rail-heading">
+            <span>{activeTrackLabel}</span>
+            <strong>{trackItems.length}</strong>
+          </div>
           <div className="tabs" aria-label="Track">
             <button className={track === 'people' ? 'active' : ''} onClick={() => setTrack('people')}>
               {copy.people[lang]}
@@ -86,7 +93,13 @@ function App() {
         </aside>
 
         <section className="map-area">
-          <NetworkGraph nodes={filteredNodes} links={links} lang={lang} track={track} selectedId={selectedId} onSelect={setSelectedId} />
+          <div className="map-panel">
+            <div className="map-caption">
+              <span>{activeTrackLabel}</span>
+              <strong>{selected.title[lang]}</strong>
+            </div>
+            <NetworkGraph nodes={filteredNodes} links={links} lang={lang} track={track} selectedId={selectedId} onSelect={setSelectedId} />
+          </div>
         </section>
 
         <DetailPanel item={selected} lang={lang} />
