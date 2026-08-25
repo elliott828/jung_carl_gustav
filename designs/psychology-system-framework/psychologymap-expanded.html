@@ -1,0 +1,2713 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Psychologymap Expanded：重要性与应用广度重构</title>
+    <style>
+      :root {
+        --bg: #f3f0e8;
+        --paper: #fffdf7;
+        --ink: #17201d;
+        --muted: #66716d;
+        --line: rgba(23, 32, 29, 0.13);
+        --deep: #12352f;
+        --teal: #007f7a;
+        --gold: #d6a441;
+        --rose: #bb5966;
+        --blue: #496ea8;
+        --violet: #675aa9;
+        --green: #5a8f61;
+        --shadow: 0 24px 80px rgba(23, 32, 29, 0.13);
+        color: var(--ink);
+        background: var(--bg);
+        font-family:
+          -apple-system, "SF Pro Text", "Segoe UI", "PingFang SC", "Noto Sans SC",
+          "Hiragino Sans", "Noto Sans JP", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background:
+          linear-gradient(110deg, rgba(0, 127, 122, 0.12), transparent 32%),
+          linear-gradient(300deg, rgba(187, 89, 102, 0.1), transparent 30%),
+          var(--bg);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .hero {
+        padding: 28px clamp(18px, 4vw, 56px) 20px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 253, 247, 0.76);
+        backdrop-filter: blur(22px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) auto;
+        gap: 22px;
+        align-items: end;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--teal);
+        font-size: 12px;
+        font-weight: 850;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 980px;
+        margin: 0;
+        font-size: clamp(30px, 4.6vw, 70px);
+        line-height: 0.98;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        max-width: 900px;
+        margin: 16px 0 0;
+        color: #47544f;
+        font-size: clamp(15px, 1.45vw, 19px);
+        line-height: 1.75;
+      }
+
+      .toolbar {
+        display: grid;
+        gap: 10px;
+        min-width: min(420px, 100%);
+      }
+
+      .segmented,
+      .searchbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.74);
+        box-shadow: 0 12px 34px rgba(23, 32, 29, 0.07);
+      }
+
+      .segmented button {
+        min-height: 34px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 7px;
+        color: var(--muted);
+        background: transparent;
+        font-weight: 750;
+      }
+
+      .segmented button.active {
+        color: var(--ink);
+        background: #ecd188;
+      }
+
+      .searchbox {
+        padding: 0 12px;
+        min-height: 44px;
+      }
+
+      .searchbox input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        color: var(--ink);
+        background: transparent;
+      }
+
+      .main {
+        display: grid;
+        grid-template-columns: 280px minmax(580px, 1fr) minmax(340px, 420px);
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 253, 247, 0.84);
+        box-shadow: var(--shadow);
+      }
+
+      .nav {
+        padding: 16px;
+        align-self: start;
+        position: sticky;
+        top: 150px;
+        max-height: calc(100vh - 170px);
+        overflow: auto;
+      }
+
+      .nav h2,
+      .detail h2,
+      .section h2 {
+        margin: 0;
+        font-size: 15px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .nav-note,
+      .source-note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.65;
+      }
+
+      .lens-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .group-block + .group-block {
+        margin-top: 16px;
+      }
+
+      .group-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0 2px 7px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .group-label span:last-child {
+        font-weight: 650;
+      }
+
+      .lens {
+        display: grid;
+        grid-template-columns: 12px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+        min-height: 54px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        padding: 10px;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.5);
+        text-align: left;
+      }
+
+      .lens.active {
+        border-color: rgba(0, 127, 122, 0.34);
+        background: linear-gradient(120deg, rgba(0, 127, 122, 0.13), rgba(214, 164, 65, 0.16));
+      }
+
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--color, var(--teal));
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.88);
+      }
+
+      .lens strong {
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .lens small {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .canvas {
+        min-height: 760px;
+        overflow: hidden;
+        position: sticky;
+        top: 150px;
+        align-self: start;
+        background:
+          linear-gradient(rgba(23, 32, 29, 0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 32, 29, 0.055) 1px, transparent 1px),
+          radial-gradient(circle at 42% 38%, rgba(0, 127, 122, 0.12), transparent 32%),
+          radial-gradient(circle at 72% 72%, rgba(187, 89, 102, 0.1), transparent 34%),
+          #fbfcf6;
+        background-size: 34px 34px, 34px 34px, auto, auto, auto;
+      }
+
+      .map-head {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        right: 16px;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 253, 247, 0.82);
+        backdrop-filter: blur(14px);
+      }
+
+      .map-head strong {
+        font-size: 18px;
+      }
+
+      .map-head span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .map-modes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .map-modes button {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.64);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .map-modes button.active {
+        color: var(--paper);
+        background: var(--deep);
+      }
+
+      .map-stage {
+        position: relative;
+        width: 100%;
+        height: 760px;
+      }
+
+      .link-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .link-layer line {
+        stroke: rgba(18, 53, 47, 0.18);
+        stroke-width: 2;
+      }
+
+      .link-layer line.active {
+        stroke: var(--rose);
+        stroke-width: 4;
+      }
+
+      .node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: var(--size, 118px);
+        min-height: var(--size, 118px);
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(23, 32, 29, 0.2);
+        border-radius: 50%;
+        padding: 12px;
+        color: var(--paper);
+        background:
+          radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.42), transparent 27%),
+          var(--color, var(--teal));
+        box-shadow:
+          0 20px 38px rgba(23, 32, 29, 0.16),
+          inset 0 -18px 28px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+      }
+
+      .node:hover,
+      .node.active {
+        transform: translate(-50%, -50%) scale(1.06);
+        box-shadow:
+          0 26px 54px rgba(23, 32, 29, 0.22),
+          0 0 0 7px rgba(214, 164, 65, 0.22);
+      }
+
+      .node.dimmed {
+        filter: grayscale(0.65);
+        opacity: 0.45;
+      }
+
+      .node strong {
+        font-size: 13px;
+        line-height: 1.24;
+      }
+
+      .node span {
+        display: block;
+        margin-top: 4px;
+        font-size: 10px;
+        opacity: 0.86;
+      }
+
+      .detail {
+        align-self: start;
+        position: sticky;
+        top: 150px;
+        max-height: calc(100vh - 170px);
+        overflow: auto;
+        padding: 18px;
+      }
+
+      .badge {
+        display: inline-flex;
+        width: fit-content;
+        margin-bottom: 12px;
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: var(--paper);
+        background: var(--teal);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .detail-title {
+        margin: 0;
+        font-size: clamp(24px, 2.5vw, 34px);
+        line-height: 1.12;
+      }
+
+      .detail-sub {
+        margin: 10px 0 0;
+        color: #40504a;
+        line-height: 1.74;
+      }
+
+      .fact-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 16px 0;
+      }
+
+      .fact {
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .fact small {
+        display: block;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .fact strong {
+        font-size: 13px;
+      }
+
+      .chips,
+      .people-list,
+      .book-grid,
+      .source-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .chip {
+        border: 1px solid rgba(0, 127, 122, 0.18);
+        border-radius: 999px;
+        padding: 6px 9px;
+        background: rgba(0, 127, 122, 0.1);
+        font-size: 12px;
+      }
+
+      .section {
+        margin: 16px;
+        padding: 18px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 14px;
+      }
+
+      .section-head p {
+        max-width: 760px;
+        margin: 6px 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .taxonomy-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin: 0 0 14px;
+      }
+
+      .taxonomy-bar {
+        margin: 16px 16px 0;
+        padding: 14px 14px 0;
+      }
+
+      .taxonomy-item {
+        border-top: 3px solid var(--group-color);
+        padding: 9px 10px;
+        background: rgba(255, 255, 255, 0.48);
+      }
+
+      .taxonomy-item strong,
+      .taxonomy-item span {
+        display: block;
+      }
+
+      .taxonomy-item strong {
+        font-size: 12px;
+      }
+
+      .taxonomy-item span {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.45;
+      }
+
+      .book-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 0 0 14px;
+      }
+
+      .book-controls button {
+        min-height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 0 11px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.58);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .book-controls button.active {
+        border-color: rgba(0, 127, 122, 0.38);
+        color: var(--ink);
+        background: rgba(0, 127, 122, 0.12);
+      }
+
+      .book-route {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 9px 0 0;
+      }
+
+      .route-tag {
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 3px 6px;
+        color: var(--muted);
+        background: rgba(255, 253, 247, 0.78);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .people-list {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(160px, 1fr));
+      }
+
+      .person-card,
+      .book-card,
+      .source-card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      .person-card {
+        min-height: 172px;
+        padding: 12px;
+      }
+
+      .person-card strong,
+      .book-card strong {
+        display: block;
+        line-height: 1.3;
+      }
+
+      .person-card span {
+        display: block;
+        margin: 4px 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .person-card p,
+      .book-card p {
+        margin: 0;
+        color: #3f4c48;
+        font-size: 12px;
+        line-height: 1.62;
+      }
+
+      .book-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(220px, 1fr));
+      }
+
+      .book-card {
+        min-height: 228px;
+        padding: 14px;
+      }
+
+      .book-meta {
+        display: grid;
+        gap: 5px;
+        margin: 10px 0;
+        color: #4d5a55;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .source-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(220px, 1fr));
+      }
+
+      .source-card {
+        padding: 12px;
+      }
+
+      .source-card a {
+        color: var(--teal);
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .source-card p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.62;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 1280px) {
+        .main {
+          grid-template-columns: 250px minmax(500px, 1fr);
+        }
+
+        .detail {
+          grid-column: 1 / -1;
+          position: relative;
+          top: auto;
+          max-height: none;
+        }
+
+        .people-list {
+          grid-template-columns: repeat(4, minmax(160px, 1fr));
+        }
+
+        .book-grid,
+        .source-grid {
+          grid-template-columns: repeat(2, minmax(220px, 1fr));
+        }
+      }
+
+      @media (max-width: 820px) {
+        .hero {
+          position: relative;
+        }
+
+        .hero-grid,
+        .main {
+          grid-template-columns: 1fr;
+        }
+
+        .toolbar,
+        .nav,
+        .canvas {
+          position: relative;
+          top: auto;
+          max-height: none;
+        }
+
+        .map-stage {
+          height: 650px;
+          transform: scale(0.84);
+          transform-origin: top left;
+          width: 119%;
+        }
+
+        .canvas {
+          min-height: 580px;
+        }
+
+        .people-list,
+        .book-grid,
+        .source-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .taxonomy-summary {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .fact-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <style>
+      .psychologymap-page > .shell { display: none; }
+      .pm-app {
+        --pm-ink: #17201d;
+        --pm-paper: #fffdf7;
+        --pm-line: rgba(23,32,29,.16);
+        width: 100vw;
+        height: 100vh;
+        min-width: 320px;
+        min-height: 620px;
+        display: grid;
+        grid-template-rows: 66px minmax(0,1fr);
+        overflow: hidden;
+        background: #e5e2da;
+        color: var(--pm-ink);
+      }
+      .pm-header {
+        display: grid;
+        grid-template-columns: minmax(330px,1fr) minmax(240px,390px) auto;
+        gap: 18px;
+        align-items: center;
+        padding: 0 16px 0 20px;
+        border-bottom: 1px solid var(--pm-line);
+        background: #10201f;
+        color: #fff;
+        z-index: 10;
+      }
+      .pm-brand { min-width: 0; display: flex; align-items: baseline; gap: 12px; }
+      .pm-brand h1 { margin: 0; font: 700 26px/1 Georgia, serif; letter-spacing: 0; }
+      .pm-brand span { color: #aeb8b4; font-size: 10px; white-space: nowrap; }
+      .pm-search { height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 11px; border: 1px solid rgba(255,255,255,.2); background: #272e2b; }
+      .pm-search span { color: #85c5b9; }
+      .pm-search input { width: 100%; border: 0; outline: 0; color: #fff; background: transparent; font-size: 12px; }
+      .pm-header-actions { display: flex; gap: 5px; }
+      .pm-header-button { min-height: 36px; padding: 0 11px; border: 1px solid rgba(255,255,255,.18); border-radius: 2px; color: #dbe2df; background: transparent; font-size: 10px; font-weight: 800; }
+      .pm-header-button.active { color: #10201f; background: #61e2c6; border-color: #61e2c6; }
+      .pm-main { position: relative; min-height: 0; overflow: hidden; background: #080b0a; }
+      .pm-viewport { position: absolute; inset: 0; overflow: hidden; cursor: grab; background-color: #10292c; background-image: url('./assets/psychologymap-mountain-world.png'); background-size: cover; background-position: center center; }
+      .pm-viewport::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: rgba(4,18,20,.32); transition: background .35s ease; }
+      .pm-viewport.is-overview::after { background: rgba(3,17,21,.08); }
+      .pm-viewport.dragging { cursor: grabbing; }
+      .pm-map { position: relative; z-index: 1; width: 100%; height: 100%; display: block; touch-action: none; }
+      .pm-nav { position: absolute; z-index: 7; inset: 0 auto 0 0; width: 54px; display: flex; flex-direction: column; align-items: center; padding: 10px 0; border-right: 1px solid rgba(255,255,255,.14); background: rgba(9,27,28,.9); box-shadow: 8px 0 22px rgba(0,0,0,.2); backdrop-filter: blur(10px); }
+      .pm-nav-mark { width: 38px; height: 38px; display: grid; place-items: center; margin-bottom: 12px; border: 1px solid rgba(255,255,255,.28); color: #61e2c6; font: 700 19px/1 Georgia,serif; }
+      .pm-nav-button { width: 42px; height: 42px; display: grid; place-items: center; padding: 0; border: 0; border-bottom: 1px solid rgba(255,255,255,.08); color: #cad2cf; background: transparent; font-size: 17px; }
+      .pm-nav-button:hover,.pm-nav-button.active { color: #61e2c6; background: rgba(255,255,255,.09); }
+      .pm-nav-spacer { flex: 1; }
+      .pm-toolbar { position: absolute; right: 16px; bottom: 16px; z-index: 8; display: grid; gap: 4px; }
+      .pm-tool { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 1px solid var(--pm-line); border-radius: 2px; color: #173a33; background: rgba(255,253,247,.96); font-size: 16px; font-weight: 900; box-shadow: 0 5px 16px rgba(23,32,29,.13); }
+      .pm-scale {
+        position: absolute; left: 68px; top: 14px; z-index: 5; min-width: 188px; padding: 9px 11px; border: 1px solid rgba(255,255,255,.15); color: #fff; background: rgba(15,19,17,.88); box-shadow: 0 5px 20px rgba(0,0,0,.2);
+      }
+      .pm-scale strong { display: block; font-size: 10px; }
+      .pm-scale span { display: block; margin-top: 2px; color: #aeb8b4; font-size: 9px; }
+      .pm-viewport.is-overview .pm-scale { opacity: 0; pointer-events: none; }
+      .pm-overview-copy {
+        position: absolute;
+        z-index: 4;
+        top: clamp(42px,8vh,88px);
+        left: clamp(86px,8vw,150px);
+        width: min(590px,calc(100vw - 190px));
+        color: #fff;
+        pointer-events: none;
+        text-shadow: 0 2px 18px rgba(0,25,31,.42);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity .35s ease,transform .35s ease;
+      }
+      .pm-viewport.is-overview .pm-overview-copy { opacity: 1; transform: translateY(0); }
+      .pm-overview-copy p { margin: 0 0 8px; color: #c9fff3; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+      .pm-overview-copy h2 { max-width: 560px; margin: 0; font: 700 clamp(35px,4.2vw,66px)/1.02 Georgia,"Songti SC",serif; letter-spacing: 0; }
+      .pm-overview-copy span { display: block; max-width: 470px; margin-top: 13px; color: rgba(255,255,255,.88); font-size: 13px; font-weight: 650; line-height: 1.7; }
+      .pm-legend {
+        position: absolute; left: 68px; bottom: 14px; z-index: 5; display: flex; gap: 12px; padding: 8px 10px; border: 1px solid rgba(255,255,255,.15); background: rgba(15,19,17,.88); color: #b6c0bc; font-size: 8px;
+      }
+      .pm-legend span { display: flex; align-items: center; gap: 5px; }
+      .pm-legend b { font: inherit; }
+      .pm-legend i { width: 20px; height: 2px; background: var(--legend-color); }
+      .pm-year-line { stroke: rgba(255,255,255,.09); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .pm-year-line.major { stroke: rgba(255,255,255,.2); stroke-width: 1.5; }
+      .pm-year-label { fill: rgba(255,255,255,.54); font-size: 16px; font-weight: 800; letter-spacing: 0; }
+      .pm-lane { stroke: rgba(255,255,255,.15); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+      .pm-lane-title { font: 700 58px/1 Georgia,"Songti SC",serif; fill: rgba(255,255,255,.72); letter-spacing: 0; }
+      .pm-lane-note { font-size: 21px; font-weight: 800; fill: rgba(255,255,255,.55); letter-spacing: 0; }
+      .pm-edge { fill: none; stroke-width: 2; opacity: .5; vector-effect: non-scaling-stroke; transition: opacity .18s,stroke-width .18s; }
+      .pm-edge.primary { stroke: #1a887e; marker-end: url(#pmArrowPrimary); }
+      .pm-edge.secondary { stroke: #5875a4; stroke-dasharray: 9 7; }
+      .pm-edge.anti { stroke: #b45462; stroke-dasharray: 2 6; stroke-width: 2.5; }
+      .pm-edge.muted { opacity: .035; }
+      .pm-edge.highlight { opacity: 1; stroke-width: 4; }
+      .pm-domain { cursor: pointer; transition: opacity .18s; }
+      .pm-domain .node-back { fill: rgba(16,22,20,.94); stroke: var(--node-color); stroke-width: 2.4; vector-effect: non-scaling-stroke; }
+      .pm-domain .node-tab { fill: var(--node-color); }
+      .pm-domain .node-title { fill: #fffdf7; font-size: 17px; font-weight: 900; letter-spacing: 0; }
+      .pm-domain .node-meta { fill: #b8c2be; font-size: 11px; font-weight: 700; letter-spacing: 0; }
+      .pm-domain .node-year { fill: white; font-size: 11px; font-weight: 900; letter-spacing: 0; }
+      .pm-domain.selected .node-back { stroke: #d5a43a; stroke-width: 5; filter: drop-shadow(0 7px 8px rgba(23,32,29,.18)); }
+      .pm-domain.muted { opacity: .14; }
+      .pm-unit { cursor: pointer; transition: opacity .18s; }
+      .pm-unit .unit-back { fill: rgba(16,22,20,.94); stroke: var(--unit-color); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+      .pm-unit .unit-dot { fill: var(--unit-color); }
+      .pm-unit .unit-title { fill: #fffdf7; font-size: 12px; font-weight: 850; letter-spacing: 0; }
+      .pm-unit .unit-meta { fill: #b7c1bd; font-size: 9px; letter-spacing: 0; }
+      .pm-unit .unit-score { fill: #fff; font-size: 7px; font-weight: 900; letter-spacing: 0; }
+      .pm-unit .unit-score-back { fill: var(--unit-color); }
+      .pm-book { cursor: pointer; }
+      .pm-book .book-back { fill: rgba(18,16,28,.95); stroke: #998bd2; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+      .pm-book .book-spine { fill: #675aa9; }
+      .pm-book .book-title { fill: #f6f2ff; font-size: 10px; font-weight: 850; letter-spacing: 0; }
+      .pm-book .book-meta { fill: #b8aedb; font-size: 8px; letter-spacing: 0; }
+      .pm-superbar { cursor: pointer; transition: opacity .2s,filter .2s,transform .2s; filter: drop-shadow(0 12px 16px rgba(0,15,22,.34)); }
+      .pm-superbar .bar-front { fill: var(--bar-color); fill-opacity: .92; stroke: rgba(255,255,255,.48); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+      .pm-superbar .bar-side { fill: var(--bar-color); fill-opacity: .58; }
+      .pm-superbar .bar-top { fill: #fff; fill-opacity: .48; stroke: rgba(255,255,255,.58); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .pm-superbar .bar-cap { fill: #fff; fill-opacity: .82; }
+      .pm-superbar .bar-title { fill: #fff; font-size: 17px; font-weight: 900; paint-order: stroke; stroke: rgba(0,20,25,.42); stroke-width: 3px; letter-spacing: 0; }
+      .pm-superbar .bar-meta { fill: rgba(255,255,255,.9); font-size: 11px; font-weight: 800; letter-spacing: 0; }
+      .pm-superbar:hover { filter: brightness(1.17) saturate(1.15) drop-shadow(0 18px 20px rgba(0,15,22,.5)); }
+      .pm-super-ground { stroke: rgba(196,255,240,.48); stroke-width: 2; vector-effect: non-scaling-stroke; }
+      .pm-super-group { fill: rgba(255,255,255,.82); font-size: 13px; font-weight: 900; letter-spacing: 0; paint-order: stroke; stroke: rgba(0,24,28,.62); stroke-width: 4px; }
+      .pm-map:not(.zoom-super) .pm-superbar { display: none; }
+      .pm-map:not(.zoom-super) .pm-super-ground,.pm-map:not(.zoom-super) .pm-super-group { display: none; }
+      .pm-stem { stroke: var(--stem-color); stroke-width: 1.3; opacity: .45; vector-effect: non-scaling-stroke; }
+      .pm-map.zoom-super #pmBackground,.pm-map.zoom-super .pm-domain,.pm-map.zoom-super .pm-edge,.pm-map.zoom-super .pm-unit,.pm-map.zoom-super .pm-book,.pm-map.zoom-super .pm-stem { display: none; }
+      .pm-map.zoom-domain .pm-unit,.pm-map.zoom-domain .pm-book,.pm-map.zoom-domain .pm-stem { display: none; }
+      .pm-map.zoom-unit .pm-book { display: none; }
+      .pm-panel {
+        position: absolute; top: 14px; right: 14px; bottom: 14px; z-index: 6; width: 350px; display: grid; grid-template-rows: auto minmax(0,1fr); border: 1px solid var(--pm-line); background: rgba(255,253,247,.98); box-shadow: 0 16px 50px rgba(23,32,29,.19); transform: translateX(calc(100% + 20px)); transition: transform .24s ease;
+      }
+      .pm-panel.open { transform: translateX(0); }
+      .pm-panel-head { padding: 16px 16px 13px; color: #fff; background: var(--panel-color,#173a33); }
+      .pm-panel-head-row { display: flex; justify-content: space-between; gap: 10px; }
+      .pm-panel-kicker { margin: 0 0 5px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0; opacity: .78; }
+      .pm-panel h2 { margin: 0; font: 700 25px/1.12 Georgia,"Songti SC",serif; letter-spacing: 0; }
+      .pm-panel-subtitle { margin: 5px 0 0; font-size: 10px; opacity: .82; }
+      .pm-panel-close { width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.35); border-radius: 2px; color: #fff; background: transparent; font-size: 18px; }
+      .pm-panel-body { padding: 16px; overflow-y: auto; }
+      .pm-panel-description { margin: 0 0 16px; color: #56615d; font-size: 12px; line-height: 1.7; }
+      .pm-pair { padding: 11px; border-left: 4px solid var(--panel-color); background: #f1eee6; font-size: 11px; font-weight: 780; line-height: 1.55; }
+      .pm-panel h3 { margin: 18px 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0; }
+      .pm-reading-item { width: 100%; display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 9px 0; border: 0; border-bottom: 1px solid var(--pm-line); text-align: left; background: transparent; }
+      .pm-reading-item b { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #675aa9; font-size: 9px; }
+      .pm-reading-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 800; }
+      .pm-reading-item small { color: #7b8581; font-size: 8px; }
+      .pm-panel-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin-top: 15px; }
+      .pm-panel-stat { padding: 8px; border: 1px solid var(--pm-line); background: #f7f4ec; }
+      .pm-panel-stat strong { display: block; font-size: 16px; }
+      .pm-panel-stat span { display: block; margin-top: 2px; color: #77817d; font-size: 8px; }
+      @media(max-width:900px){
+        .pm-header{grid-template-columns:1fr auto}.pm-brand span,.pm-search{display:none}.pm-panel{width:min(88vw,350px)}.pm-scale{display:none}
+      }
+      @media(max-width:600px){
+        .pm-app{grid-template-rows:96px minmax(0,1fr)}
+        .pm-header{grid-template-columns:1fr;grid-template-rows:auto auto;gap:5px;padding:8px 10px}
+        .pm-brand h1{font-size:20px}
+        .pm-header-actions{width:100%}
+        .pm-header-button{flex:1;min-height:29px}
+        .pm-nav{width:46px}
+        .pm-nav-mark{width:34px;height:34px}
+        .pm-nav-button{width:38px;height:38px}
+        .pm-scale{display:block;left:58px;top:8px;min-width:150px}
+        .pm-legend{display:none}
+        .pm-toolbar{right:8px;bottom:8px}
+        .pm-panel{top:8px;right:8px;bottom:8px;width:calc(100vw - 62px)}
+        .pm-overview-copy{top:70px;left:62px;width:calc(100vw - 82px)}
+        .pm-overview-copy h2{font-size:34px}
+        .pm-overview-copy span{font-size:11px}
+      }
+    </style>
+    <style>
+      /* 2026 visual refresh: one continuous, accessible knowledge landscape. */
+      .pm-app {
+        --pm-bg: #071517;
+        --pm-surface: rgba(11, 29, 31, .88);
+        --pm-surface-strong: rgba(8, 23, 25, .96);
+        --pm-ink: #edf7f4;
+        --pm-muted: #a8bbb6;
+        --pm-line: rgba(213, 238, 231, .14);
+        --pm-accent: #6de0c6;
+        --pm-focus: #f0ca72;
+        grid-template-rows: 76px minmax(0, 1fr);
+        background: var(--pm-bg);
+        color: var(--pm-ink);
+        font-family: -apple-system, "SF Pro Text", "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+      }
+      .pm-header {
+        grid-template-columns: minmax(340px, 1fr) minmax(300px, 440px) auto;
+        gap: 24px;
+        padding: 0 22px;
+        border-color: rgba(213, 238, 231, .12);
+        background: rgba(6, 18, 20, .96);
+        box-shadow: 0 10px 34px rgba(0, 0, 0, .18);
+      }
+      .pm-brand { gap: 14px; }
+      .pm-brand h1 {
+        font: 720 25px/1.05 -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+        letter-spacing: -.035em;
+      }
+      .pm-brand span { color: #9fb3ad; font-size: 12px; line-height: 1.4; }
+      .pm-search {
+        height: 44px;
+        gap: 10px;
+        padding: 0 14px;
+        border-color: rgba(213, 238, 231, .16);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .055);
+        transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+      }
+      .pm-search:focus-within {
+        border-color: rgba(109, 224, 198, .7);
+        background: rgba(255, 255, 255, .08);
+        box-shadow: 0 0 0 3px rgba(109, 224, 198, .12);
+      }
+      .pm-search input { font-size: 14px; }
+      .pm-header-actions { gap: 8px; }
+      .pm-header-button {
+        min-height: 44px;
+        padding: 0 15px;
+        border-color: rgba(213, 238, 231, .16);
+        border-radius: 11px;
+        color: #c4d2ce;
+        font-size: 13px;
+        font-weight: 720;
+      }
+      .pm-header-button:hover { background: rgba(255, 255, 255, .07); }
+      .pm-header-button.active { color: #07201d; background: var(--pm-accent); border-color: var(--pm-accent); }
+      .pm-main { background: var(--pm-bg); }
+      .pm-viewport {
+        background-color: #091c1f;
+        background-image:
+          radial-gradient(circle at 58% 20%, rgba(44, 112, 103, .2), transparent 40%),
+          linear-gradient(rgba(5, 18, 20, .76), rgba(5, 18, 20, .92)),
+          url('./assets/psychologymap-mountain-world.png');
+        background-blend-mode: screen, multiply, luminosity;
+      }
+      .pm-viewport::after { background: rgba(3, 14, 16, .8); }
+      .pm-viewport.is-overview::after { background: rgba(3, 14, 16, .7); }
+      .pm-nav {
+        width: 64px;
+        padding: 12px 0;
+        border-color: rgba(213, 238, 231, .1);
+        background: rgba(5, 19, 21, .9);
+        box-shadow: 12px 0 38px rgba(0, 0, 0, .18);
+      }
+      .pm-nav-mark { width: 42px; height: 42px; margin-bottom: 16px; border-radius: 12px; font-size: 20px; }
+      .pm-nav-button { width: 44px; height: 44px; border: 0; border-radius: 11px; font-size: 17px; }
+      .pm-nav-button + .pm-nav-button { margin-top: 3px; }
+      .pm-toolbar { right: 20px; bottom: 20px; gap: 7px; }
+      .pm-tool {
+        width: 44px;
+        height: 44px;
+        border-color: rgba(213, 238, 231, .16);
+        border-radius: 12px;
+        color: #dcebe7;
+        background: rgba(8, 26, 28, .9);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, .2);
+        backdrop-filter: blur(16px);
+      }
+      .pm-tool:hover { color: #061b19; background: var(--pm-accent); }
+      .pm-scale,
+      .pm-legend {
+        left: 80px;
+        border-color: rgba(213, 238, 231, .13);
+        border-radius: 12px;
+        background: rgba(5, 20, 22, .78);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .16);
+        backdrop-filter: blur(18px);
+      }
+      .pm-scale { top: 18px; min-width: 230px; padding: 12px 14px; }
+      .pm-scale strong { font-size: 13px; letter-spacing: .01em; }
+      .pm-scale span { margin-top: 4px; color: var(--pm-muted); font-size: 12px; }
+      .pm-legend { bottom: 18px; gap: 18px; padding: 11px 13px; color: #aebfba; font-size: 11px; }
+      .pm-lock-state {
+        position: absolute;
+        z-index: 9;
+        top: 18px;
+        left: 328px;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        padding: 7px 8px 7px 13px;
+        border: 1px solid rgba(240, 202, 114, .42);
+        border-radius: 12px;
+        color: #f8edd2;
+        background: rgba(48, 38, 17, .88);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .2);
+        backdrop-filter: blur(18px);
+      }
+      .pm-lock-state.visible { display: flex; }
+      .pm-lock-state svg { width: 17px; height: 17px; fill: none; stroke: var(--pm-focus); stroke-width: 1.8; }
+      .pm-lock-copy { display: grid; gap: 1px; }
+      .pm-lock-copy strong { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+      .pm-lock-copy span { color: #cabd9e; font-size: 10px; }
+      .pm-unlock {
+        min-width: 74px;
+        min-height: 34px;
+        border: 0;
+        border-radius: 8px;
+        color: #251b08;
+        background: var(--pm-focus);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .pm-overview-copy { left: clamp(94px, 9vw, 170px); width: min(620px, calc(100vw - 220px)); text-shadow: 0 3px 28px rgba(0, 0, 0, .62); }
+      .pm-overview-copy p { margin-bottom: 12px; color: #9fe7d8; font-size: 12px; letter-spacing: .12em; }
+      .pm-overview-copy h2 {
+        font: 720 clamp(38px, 4.3vw, 66px)/1.03 -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+        letter-spacing: -.045em;
+      }
+      .pm-overview-copy span { max-width: 520px; margin-top: 16px; color: #c2d1cd; font-size: 15px; line-height: 1.75; }
+      .pm-year-line { stroke: rgba(213, 238, 231, .075); }
+      .pm-year-line.major { stroke: rgba(213, 238, 231, .14); }
+      .pm-year-label { fill: rgba(213, 238, 231, .56); font-size: 15px; }
+      .pm-lane { stroke: rgba(213, 238, 231, .1); }
+      .pm-lane-title { fill: rgba(229, 245, 240, .72); font: 720 54px/1 -apple-system, "SF Pro Display", "PingFang SC", sans-serif; letter-spacing: -.035em; }
+      .pm-lane-note { fill: rgba(185, 207, 201, .64); font-size: 22px; }
+      .pm-edge { stroke-width: 2.2; opacity: .42; }
+      .pm-edge.primary { stroke: #57cdb8; }
+      .pm-edge.secondary { stroke: #78a4ca; }
+      .pm-edge.anti { stroke: #dc7786; }
+      .pm-edge.muted { opacity: .025; }
+      .pm-edge.highlight { opacity: .96; stroke-width: 4.5; filter: drop-shadow(0 0 6px currentColor); }
+      .pm-domain .node-back,
+      .pm-unit .unit-back,
+      .pm-book .book-back { fill: rgba(7, 23, 25, .9); stroke-width: 1.6; }
+      .pm-domain .node-back { rx: 12px; }
+      .pm-domain .node-tab { opacity: .86; }
+      .pm-domain .node-title { font-size: 18px; }
+      .pm-domain .node-meta { fill: #b9cbc6; font-size: 12px; }
+      .pm-domain .node-year { font-size: 12px; }
+      .pm-unit .unit-title { font-size: 13px; }
+      .pm-unit .unit-meta { fill: #b7c8c3; font-size: 10px; }
+      .pm-book .book-title { font-size: 11px; }
+      .pm-book .book-meta { font-size: 9px; }
+      .pm-domain.selected .node-back,
+      .pm-unit.selected .unit-back,
+      .pm-book.selected .book-back { stroke: var(--pm-focus); stroke-width: 4px; filter: drop-shadow(0 0 11px rgba(240, 202, 114, .42)); }
+      .pm-domain.muted,
+      .pm-unit.muted,
+      .pm-book.muted { opacity: .1; }
+      .pm-domain.related .node-back,
+      .pm-unit.related .unit-back,
+      .pm-book.related .book-back { stroke-width: 2.6; }
+      .pm-superbar { filter: none; }
+      .pm-superbar .bar-front {
+        fill: var(--bar-color);
+        fill-opacity: .58;
+        stroke: color-mix(in srgb, var(--bar-color), white 38%);
+        stroke-width: 1.5;
+      }
+      .pm-superbar .bar-side,
+      .pm-superbar .bar-top,
+      .pm-superbar .bar-cap { display: none; }
+      .pm-superbar .bar-title { fill: #f4fbf8; font-size: 18px; stroke: rgba(3, 14, 16, .55); stroke-width: 4px; }
+      .pm-superbar .bar-meta { fill: rgba(233, 245, 241, .82); font-size: 12px; }
+      .pm-superbar:hover { filter: brightness(1.16) drop-shadow(0 0 14px color-mix(in srgb, var(--bar-color), transparent 55%)); }
+      .pm-super-ground { stroke: rgba(213, 238, 231, .3); }
+      .pm-super-group { fill: rgba(229, 245, 240, .78); font-size: 14px; }
+      .pm-panel {
+        top: 18px;
+        right: 18px;
+        bottom: 18px;
+        z-index: 10;
+        width: min(390px, calc(100vw - 96px));
+        border-color: rgba(213, 238, 231, .14);
+        border-radius: 16px;
+        overflow: hidden;
+        color: #17302d;
+        background: rgba(247, 250, 247, .98);
+        box-shadow: 0 24px 72px rgba(0, 0, 0, .34);
+      }
+      .pm-panel-head { padding: 21px 20px 18px; }
+      .pm-panel-kicker { margin-bottom: 7px; font-size: 11px; letter-spacing: .1em; }
+      .pm-panel h2 { font: 750 28px/1.18 -apple-system, "SF Pro Display", "PingFang SC", sans-serif; letter-spacing: -.03em; }
+      .pm-panel-subtitle { margin-top: 7px; font-size: 12px; }
+      .pm-panel-close { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; }
+      .pm-panel-body { padding: 20px; }
+      .pm-panel-description { margin-bottom: 18px; font-size: 15px; line-height: 1.78; }
+      .pm-pair { padding: 14px; border-left-width: 3px; border-radius: 0 10px 10px 0; font-size: 14px; line-height: 1.65; }
+      .pm-panel h3 { margin: 22px 0 8px; font-size: 13px; letter-spacing: .08em; }
+      .pm-reading-item { min-height: 52px; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; padding: 10px 0; }
+      .pm-reading-item b { width: 26px; height: 26px; font-size: 11px; }
+      .pm-reading-item span { font-size: 13px; }
+      .pm-reading-item small { font-size: 10px; }
+      .pm-panel-stats { gap: 8px; margin-top: 18px; }
+      .pm-panel-stat { padding: 11px; border-radius: 10px; }
+      .pm-panel-stat strong { font-size: 19px; }
+      .pm-panel-stat span { margin-top: 4px; font-size: 10px; line-height: 1.35; }
+      :is(button, input):focus-visible { outline: 3px solid rgba(109, 224, 198, .75); outline-offset: 2px; }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+      @media (max-width: 900px) {
+        .pm-header { grid-template-columns: 1fr auto; }
+        .pm-lock-state { left: 76px; top: 78px; }
+      }
+      @media (max-width: 600px) {
+        .pm-app { grid-template-rows: 108px minmax(0, 1fr); }
+        .pm-header { padding: 9px 12px; }
+        .pm-header-button { min-height: 40px; }
+        .pm-nav { width: 56px; }
+        .pm-scale, .pm-legend { left: 66px; }
+        .pm-lock-state { top: 12px; left: 66px; right: 10px; }
+        .pm-lock-copy strong { max-width: 150px; }
+        .pm-panel { top: 10px; right: 10px; bottom: 10px; width: calc(100vw - 76px); }
+        .pm-overview-copy { left: 72px; width: calc(100vw - 92px); }
+        .pm-overview-copy span { font-size: 14px; }
+      }
+      .pm-overview-controls {
+        position: absolute;
+        z-index: 8;
+        top: 18px;
+        right: 20px;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        border-radius: 14px;
+        background: rgba(5, 20, 22, .76);
+        box-shadow: 0 14px 38px rgba(0, 0, 0, .2);
+        backdrop-filter: blur(18px);
+      }
+      .pm-viewport.is-overview .pm-overview-controls { display: flex; }
+      .pm-overview-mode,
+      .pm-people-order {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 10px;
+        color: #aebfba;
+        background: transparent;
+        font-size: 12px;
+        font-weight: 760;
+        transition: color .18s ease, background .18s ease;
+      }
+      .pm-overview-mode:hover,
+      .pm-people-order:hover { color: #edf7f4; background: rgba(255, 255, 255, .07); }
+      .pm-overview-mode.active { color: #061b19; background: var(--pm-accent); }
+      .pm-people-sort {
+        display: none;
+        align-items: center;
+        gap: 3px;
+        margin-left: 2px;
+        padding-left: 8px;
+        border-left: 1px solid rgba(213, 238, 231, .12);
+      }
+      .pm-overview-controls.people-mode .pm-people-sort { display: flex; }
+      .pm-people-order { min-height: 34px; padding: 0 10px; font-size: 11px; }
+      .pm-people-order.active { color: #f4e8c7; background: rgba(221, 204, 119, .16); }
+      .pm-map:not(.zoom-super) #pmSuperLayer { display: none; }
+      .pm-overview-mark { cursor: pointer; transform-box: fill-box; transform-origin: center bottom; }
+      .pm-overview-mark .pm-art-fill { stroke: none; transition: opacity .2s ease, filter .2s ease; }
+      .pm-overview-mark:hover .pm-art-fill { opacity: 1; filter: brightness(1.14) saturate(1.06); }
+      .pm-city-block { transition: opacity .2s ease, filter .2s ease; }
+      .pm-city-block:hover { filter: drop-shadow(0 0 18px color-mix(in srgb, var(--overview-color), transparent 54%)); }
+      .pm-city-body { fill: var(--overview-color); opacity: .76; }
+      .pm-city-wash { fill: rgba(255, 255, 255, .09); }
+      .pm-city-sub { fill: rgba(3, 14, 16, .16); }
+      .pm-city-title,
+      .pm-bucket-title { fill: #f4fbf8; font-size: 29px; font-weight: 850; letter-spacing: -.02em; }
+      .pm-city-title { font-size: 24px; }
+      .pm-city-year,
+      .pm-bucket-meta { fill: rgba(235, 247, 243, .76); font-size: 18px; font-weight: 760; }
+      .pm-city-subtitle { fill: rgba(236, 248, 244, .7); font-size: 17px; font-weight: 680; }
+      .pm-overview-group-name { fill: rgba(237, 247, 244, .82); font-size: 24px; font-weight: 850; letter-spacing: .03em; }
+      .pm-overview-group-note { fill: rgba(183, 207, 201, .6); font-size: 17px; font-weight: 650; }
+      .pm-bucket-area { stroke: none; opacity: .16; }
+      .pm-bucket-column { stroke: none; opacity: .72; }
+      .pm-bucket-column-glow { fill: rgba(255, 255, 255, .08); }
+      .pm-bucket-label { fill: #f3faf7; font-size: 23px; font-weight: 820; }
+      .pm-bucket-score { fill: rgba(235, 247, 243, .72); font-size: 17px; font-weight: 700; }
+      .pm-people-ribbon { fill: none; stroke: rgba(213, 238, 231, .1); stroke-width: 16; stroke-linecap: round; }
+      .pm-person-orb { transition: opacity .2s ease, filter .2s ease; }
+      .pm-person-orb:hover { filter: drop-shadow(0 0 22px color-mix(in srgb, var(--overview-color), transparent 45%)); }
+      .pm-person-halo { fill: var(--overview-color); opacity: .13; }
+      .pm-person-core { fill: var(--overview-color); opacity: .82; }
+      .pm-person-rank { fill: rgba(237, 247, 244, .58); font-size: 16px; font-weight: 780; }
+      .pm-person-name { fill: #f3faf7; font-size: 21px; font-weight: 820; }
+      .pm-person-meta { fill: rgba(193, 216, 210, .7); font-size: 16px; font-weight: 650; }
+      .pm-overview-mark:focus { outline: none; }
+      .pm-overview-mark:focus-visible .pm-art-fill { filter: brightness(1.18) drop-shadow(0 0 18px var(--overview-color)); opacity: 1; }
+      @media (max-width: 900px) {
+        .pm-overview-controls { top: 12px; right: 12px; }
+        .pm-overview-mode { padding: 0 11px; }
+      }
+      @media (max-width: 600px) {
+        .pm-overview-controls {
+          top: 10px;
+          right: 10px;
+          left: 66px;
+          gap: 3px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .pm-overview-controls::-webkit-scrollbar { display: none; }
+        .pm-overview-mode { flex: 0 0 auto; min-height: 38px; padding: 0 9px; font-size: 11px; }
+        .pm-people-sort { flex: 0 0 auto; }
+        .pm-overview-copy { top: 82px; }
+      }
+      /* Mode 3 — 谱系长河 / genealogy river (musicmap-style stacked lineages over time) */
+      .pm-gene-territory { opacity: .12; }
+      .pm-gene-territory-frame { fill: none; stroke: rgba(213, 238, 231, .16); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+      .pm-gene-territory-label { fill: rgba(237, 247, 244, .92); font-size: 24px; font-weight: 850; letter-spacing: .08em; }
+      .pm-gene-territory-note { fill: rgba(183, 207, 201, .6); font-size: 15px; font-weight: 650; }
+      .pm-gene-axis-line { stroke: rgba(213, 238, 231, .08); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .pm-gene-axis-line.major { stroke: rgba(213, 238, 231, .19); stroke-width: 1.5; }
+      .pm-gene-axis-label { fill: rgba(213, 238, 231, .5); font-size: 17px; font-weight: 800; }
+      .pm-gene-axis-cap { fill: rgba(159, 231, 216, .78); font-size: 14px; font-weight: 800; letter-spacing: .1em; }
+      .pm-gene-stream { cursor: pointer; transition: opacity .2s ease; }
+      .pm-gene-river { fill: var(--overview-color); fill-opacity: .38; stroke: color-mix(in srgb, var(--overview-color), white 44%); stroke-width: 1.4; vector-effect: non-scaling-stroke; transition: fill-opacity .2s ease, filter .2s ease; }
+      .pm-gene-river-head { fill: #fff; opacity: .16; }
+      .pm-gene-stream:hover .pm-gene-river,
+      .pm-gene-stream:focus-visible .pm-gene-river { fill-opacity: .64; filter: drop-shadow(0 0 18px color-mix(in srgb, var(--overview-color), transparent 42%)); }
+      .pm-gene-source-halo { fill: var(--overview-color); opacity: .22; }
+      .pm-gene-source { fill: var(--overview-color); stroke: #fff; stroke-width: 2.4; }
+      .pm-gene-name { fill: #f4fbf8; font-size: 21px; font-weight: 840; letter-spacing: -.01em; paint-order: stroke; stroke: rgba(3, 16, 18, .68); stroke-width: 4.5px; }
+      .pm-gene-meta { fill: rgba(224, 240, 235, .82); font-size: 14px; font-weight: 680; paint-order: stroke; stroke: rgba(3, 16, 18, .5); stroke-width: 3px; }
+      .pm-gene-link { fill: none; stroke-width: 2; opacity: .3; vector-effect: non-scaling-stroke; pointer-events: none; transition: opacity .2s ease, stroke-width .2s ease; }
+      .pm-gene-link.primary { stroke: #6de0c6; }
+      .pm-gene-link.secondary { stroke: #86b0d6; stroke-dasharray: 9 7; }
+      .pm-gene-link.anti { stroke: #e28794; stroke-dasharray: 2 7; stroke-width: 2.4; }
+      #pmSuperLayer.gene-focus .pm-gene-stream:not(.spot) { opacity: .13; }
+      #pmSuperLayer.gene-focus .pm-gene-link:not(.spot) { opacity: .04; }
+      .pm-gene-link.spot { opacity: 1; stroke-width: 3.6; }
+    </style>
+    <style>
+      /* Carta skyline — one visual grammar for chronology, genealogy and people. */
+      .pm-app { grid-template-rows: 68px minmax(0, 1fr); }
+      .pm-header {
+        grid-template-columns: minmax(280px, 1fr) minmax(260px, 420px) auto;
+        min-height: 68px;
+        padding: 0 18px 0 20px;
+        background: rgba(4, 15, 17, .96);
+      }
+      .pm-brand h1 { font-size: 24px; font-weight: 780; }
+      .pm-brand span { font-size: 13px; }
+      .pm-header-actions { position: relative; align-items: center; }
+      .pm-header-button { min-height: 40px; padding: 0 13px; font-size: 14px; border: 0; border-radius: 8px; }
+      .pm-language { position: relative; }
+      .pm-language-trigger {
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        color: #d8e8e3;
+        background: transparent;
+      }
+      .pm-language-trigger:hover,
+      .pm-language-trigger[aria-expanded="true"] { color: #071b19; background: var(--pm-accent); }
+      .pm-language-trigger svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+      .pm-language-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        z-index: 30;
+        width: 164px;
+        display: grid;
+        gap: 3px;
+        padding: 7px;
+        border: 1px solid rgba(213, 238, 231, .15);
+        border-radius: 12px;
+        background: rgba(5, 20, 22, .96);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, .35);
+        backdrop-filter: blur(18px);
+      }
+      .pm-language-menu[hidden] { display: none; }
+      .pm-language-option {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 11px;
+        border: 0;
+        border-radius: 8px;
+        color: #c7d7d2;
+        background: transparent;
+        font-size: 15px;
+        text-align: left;
+      }
+      .pm-language-option:hover { color: #fff; background: rgba(255, 255, 255, .07); }
+      .pm-language-option.active { color: #8ff0da; }
+      .pm-language-option.active::after { content: '✓'; font-weight: 900; }
+      .pm-viewport {
+        background-image:
+          linear-gradient(180deg, rgba(3, 14, 16, .78) 0%, rgba(3, 14, 16, .84) 58%, rgba(3, 14, 16, .95) 100%),
+          url('./assets/psychologymap-mountain-world.png');
+        background-blend-mode: multiply, luminosity;
+        background-position: center 44%;
+      }
+      .pm-viewport::after,
+      .pm-viewport.is-overview::after { background: rgba(2, 12, 14, .68); }
+      .pm-overview-copy { top: clamp(42px, 7vh, 82px); width: min(700px, calc(100vw - 240px)); }
+      .pm-overview-copy p { font-size: 13px; letter-spacing: .1em; }
+      .pm-overview-copy h2 { max-width: 680px; font-size: clamp(38px, 4.4vw, 68px); font-weight: 760; letter-spacing: -.045em; }
+      .pm-overview-copy span { max-width: 620px; font-size: 16px; line-height: 1.65; }
+      .pm-overview-controls { padding: 4px; gap: 2px; border-radius: 11px; background: rgba(4, 18, 20, .58); }
+      .pm-overview-mode { min-height: 42px; padding: 0 16px; border-radius: 8px; font-size: 15px; }
+      .pm-overview-mode.active { color: #effbf7; background: rgba(255, 255, 255, .12); box-shadow: inset 0 -2px 0 var(--pm-accent); }
+      .pm-people-sort { display: none !important; }
+      .pm-chart-baseline { stroke: rgba(230, 247, 242, .3); stroke-width: 2; vector-effect: non-scaling-stroke; }
+      .pm-chart-grid { stroke: rgba(213, 238, 231, .075); stroke-width: 1; vector-effect: non-scaling-stroke; }
+      .pm-chart-year { fill: rgba(231, 245, 241, .78); font-size: 38px; font-weight: 780; }
+      .pm-column { cursor: pointer; transition: opacity .2s ease, filter .2s ease; }
+      .pm-column:hover { filter: brightness(1.16) saturate(1.08) drop-shadow(0 0 18px color-mix(in srgb, var(--overview-color), transparent 48%)); }
+      .pm-column-body { fill: var(--overview-fill, var(--overview-color)); opacity: .76; stroke: none; }
+      .pm-column-sheen { fill: rgba(255, 255, 255, .09); stroke: none; pointer-events: none; }
+      .pm-column-name {
+        fill: #f4fbf8;
+        font-size: 43px;
+        font-weight: 840;
+        letter-spacing: -.015em;
+        paint-order: stroke;
+        stroke: rgba(2, 14, 16, .45);
+        stroke-width: 4px;
+      }
+      .pm-column-meta { fill: rgba(237, 248, 244, .82); font-size: 28px; font-weight: 720; }
+      .pm-column-score { fill: rgba(255, 255, 255, .96); font-size: 38px; font-weight: 850; letter-spacing: .03em; }
+      .pm-bucket-band { opacity: .1; stroke: none; }
+      .pm-bucket-rule { stroke: rgba(224, 242, 237, .22); stroke-width: 2; vector-effect: non-scaling-stroke; }
+      .pm-bucket-heading { fill: rgba(241, 250, 247, .9); font-size: 36px; font-weight: 850; }
+      .pm-bucket-caption { fill: rgba(207, 226, 221, .76); font-size: 24px; font-weight: 650; }
+      .pm-bucket-caption { display: none; }
+      .pm-index-key { fill: rgba(216, 235, 229, .76); font-size: 30px; font-weight: 700; letter-spacing: .02em; }
+      .pm-domain .node-title { font-size: 23px; }
+      .pm-domain .node-meta { font-size: 16px; }
+      .pm-domain .node-year { font-size: 16px; }
+      .pm-unit .unit-title { font-size: 17px; }
+      .pm-unit .unit-meta { font-size: 13px; }
+      .pm-unit .unit-score { font-size: 10px; }
+      .pm-book .book-title { font-size: 14px; }
+      .pm-book .book-meta { font-size: 11px; }
+      .pm-panel { width: min(470px, calc(100vw - 96px)); }
+      .pm-method-intro { margin: 0 0 18px; font-size: 16px; line-height: 1.75; color: #3f514d; }
+      .pm-method-section { padding: 18px 0; border-top: 1px solid rgba(23, 48, 45, .13); }
+      .pm-method-section h3 { margin: 0 0 9px; color: #173a35; font-size: 16px; letter-spacing: 0; text-transform: none; }
+      .pm-method-section p,
+      .pm-method-section li { color: #50615d; font-size: 14px; line-height: 1.72; }
+      .pm-method-section p { margin: 0; }
+      .pm-method-section ul { margin: 8px 0 0; padding-left: 20px; }
+      .pm-formula { margin-top: 11px; padding: 13px 14px; border-radius: 8px; color: #173a35; background: #e6efeb; font: 750 13px/1.65 "Cascadia Mono", Consolas, monospace; }
+      .pm-method-note { color: #76541d !important; }
+      .pm-cosmos-star { fill: #eafff8; opacity: var(--star-opacity, .25); }
+      .pm-people-ribbon-glow { fill: none; stroke: rgba(189, 233, 221, .09); stroke-width: 34; stroke-linecap: round; stroke-linejoin: round; }
+      .pm-people-ribbon { fill: none; stroke: rgba(220, 245, 238, .42); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 3 17; }
+      .pm-person-orb { cursor: pointer; transition: opacity .2s ease, filter .2s ease, transform .2s ease; }
+      .pm-person-orb:hover { filter: brightness(1.16) drop-shadow(0 0 30px color-mix(in srgb, var(--overview-color), transparent 36%)); }
+      .pm-person-halo { fill: var(--overview-color); opacity: .1; }
+      .pm-person-orbit { fill: none; stroke: var(--overview-color); stroke-width: 2; opacity: .3; stroke-dasharray: 4 13; }
+      .pm-person-ray { stroke: var(--overview-color); stroke-width: 3; stroke-linecap: round; opacity: .58; }
+      .pm-person-core { fill: var(--overview-color); opacity: .92; stroke: rgba(255,255,255,.36); stroke-width: 2; vector-effect: non-scaling-stroke; }
+      .pm-person-name { fill: #f7fffc; font-size: 46px; font-weight: 860; paint-order: stroke; stroke: rgba(2, 14, 16, .8); stroke-width: 7px; letter-spacing: .01em; }
+      .pm-person-meta { fill: rgba(229, 246, 240, .88); font-size: 32px; font-weight: 760; paint-order: stroke; stroke: rgba(2, 14, 16, .72); stroke-width: 5px; }
+      .pm-person-score { fill: #fff; font-size: 34px; font-weight: 900; paint-order: stroke; stroke: rgba(2,14,16,.25); stroke-width: 2px; }
+      html[lang="en"] .pm-overview-copy { width: min(780px, calc(100vw - 220px)); }
+      html[lang="en"] .pm-overview-copy h2 { max-width: 760px; font-size: clamp(36px, 3.6vw, 58px); line-height: 1.02; }
+      html[lang="en"] .pm-overview-copy span { max-width: 700px; }
+      html[lang="ja"] .pm-overview-copy h2 { font-size: clamp(36px, 4vw, 62px); }
+      @media (max-width: 900px) {
+        .pm-header { grid-template-columns: minmax(220px, 1fr) auto; }
+        .pm-header .pm-search { display: none; }
+        .pm-brand span { display: none; }
+      }
+      @media (max-width: 600px) {
+        .pm-app { grid-template-rows: 64px minmax(0, 1fr); }
+        .pm-header { grid-template-columns: 1fr auto; padding: 0 10px 0 12px; }
+        .pm-brand h1 { font-size: 19px; }
+        .pm-header-button { display: none; }
+        .pm-overview-controls { left: 66px; right: 8px; top: 8px; }
+        .pm-overview-mode { min-height: 40px; padding: 0 10px; font-size: 13px; }
+        .pm-overview-copy { top: 70px; }
+        .pm-overview-copy h2 { font-size: 34px; }
+        .pm-overview-copy span { font-size: 14px; }
+      }
+    </style>
+  </head>
+  <body class="psychologymap-page">
+    <div class="shell">
+      <header class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow" data-i18n="eyebrow">Research map · depth psychology to contemporary science</p>
+            <h1 data-i18n="title">从荣格到当代心理学体系</h1>
+            <p class="subtitle" data-i18n="subtitle">
+              一个证据导向的全景框架：把深度心理学、精神分析、认知行为、神经科学、临床医学、发展与社会文化心理学放在同一张地图上，说明它们如何解释“人为什么这样想、感受、行动与改变”。
+            </p>
+          </div>
+          <div class="toolbar">
+            <div class="segmented" aria-label="Language">
+              <button class="active" data-lang="zh">中文</button>
+              <button data-lang="en">EN</button>
+              <button data-lang="ja">日本語</button>
+            </div>
+            <label class="searchbox">
+              <span>⌕</span>
+              <input id="search" type="search" placeholder="搜索框架、人物、著作、观点" />
+            </label>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="taxonomy-bar panel" aria-label="four-layer taxonomy">
+          <div id="taxonomySummary" class="taxonomy-summary"></div>
+        </section>
+        <div class="main">
+          <aside class="nav panel">
+            <h2 data-i18n="frameworks">理论框架</h2>
+            <p class="nav-note" data-i18n="navNote">点击一个框架，看它的核心问题、代表人物、主要观点和与荣格谱系的关系。</p>
+            <div id="lensList" class="lens-list"></div>
+          </aside>
+
+          <section class="canvas panel" aria-label="knowledge map">
+            <div class="map-head">
+              <div>
+                <strong id="mapTitle">知识框架地图</strong>
+                <span id="mapSubtitle">核心框架按解释层级排列：意义/经验、行为/认知、神经/医学、社会/文化。</span>
+              </div>
+              <div class="map-modes">
+                <button class="active" data-mode="frameworks">框架</button>
+                <button data-mode="jung">荣格路径</button>
+                <button data-mode="clinical">临床路径</button>
+              </div>
+            </div>
+            <div id="mapStage" class="map-stage">
+              <svg id="linkLayer" class="link-layer" viewBox="0 0 1000 760" preserveAspectRatio="none"></svg>
+            </div>
+          </section>
+
+          <aside class="detail panel" id="detail"></aside>
+        </div>
+
+        <section class="section panel">
+          <div class="section-head">
+            <div>
+              <h2 data-i18n="peopleTitle">主要人物谱系</h2>
+              <p data-i18n="peopleNote">这里按知识谱系而非简单年代排序：荣格只是入口，现代心理学已经分化为临床、认知神经、发展、社会文化和健康行为等多个互相校正的系统。</p>
+            </div>
+          </div>
+          <div id="peopleList" class="people-list"></div>
+        </section>
+
+        <section class="section panel">
+          <div class="section-head">
+            <div>
+              <h2 data-i18n="booksTitle">面向普通人的关键读物</h2>
+              <p data-i18n="booksNote">书名列出英文原名与常见中文、日文译名或馆藏题名。不同地区版本可能有差异，适合后续继续补 ISBN 与出版社校验。</p>
+            </div>
+          </div>
+          <div class="book-controls" aria-label="reading route">
+            <button class="active" data-book-type="all" data-i18n="bookAll">全部读物</button>
+            <button data-book-type="overview" data-i18n="bookOverview">快速认识</button>
+            <button data-book-type="biography" data-i18n="bookBiography">人物与自传</button>
+            <button data-book-type="theory" data-i18n="bookTheory">理论入口</button>
+            <button data-book-type="practice" data-i18n="bookPractice">生活应用</button>
+          </div>
+          <div id="bookGrid" class="book-grid"></div>
+        </section>
+
+        <section class="section panel">
+          <div class="section-head">
+            <div>
+              <h2 data-i18n="sourcesTitle">证据来源</h2>
+              <p class="source-note" data-i18n="sourcesNote">本版优先用学会、政府/国际机构、出版社、国家图书馆/馆藏目录和作者/机构页面建立框架。心理学实践需由合格专业人员评估，本图不构成诊断或治疗建议。</p>
+            </div>
+          </div>
+          <div id="sourceGrid" class="source-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const i18n = {
+        zh: {
+          eyebrow: 'Research map · depth psychology to contemporary science',
+          title: '从荣格到当代心理学体系',
+          subtitle:
+            '一个证据导向的全景框架：把深度心理学、精神分析、认知行为、神经科学、临床医学、发展与社会文化心理学放在同一张地图上，说明它们如何解释“人为什么这样想、感受、行动与改变”。',
+          frameworks: '理论框架',
+          navNote: '点击一个框架，看它的核心问题、代表人物、主要观点和与荣格谱系的关系。',
+          peopleTitle: '主要人物谱系',
+          peopleNote:
+            '人物不是按每组 3–4 人配额挑选，而按思想独创性、历史影响和对该节点的解释力收录。人数来自下方实际人物条目，因此不同节点可以只有 1 人，也可以有 4 人。',
+          booksTitle: '面向普通人的关键读物',
+          booksNote: '不是“每位大师一本原著”，而是为每个节点配置多种入口：短简介、传记/自传、理论导读与生活应用。译名因地区和版本可能不同。',
+          bookAll: '全部读物',
+          bookOverview: '快速认识',
+          bookBiography: '人物与自传',
+          bookTheory: '理论入口',
+          bookPractice: '生活应用',
+          sourcesTitle: '证据来源',
+          sourcesNote:
+            '本版优先用学会、政府/国际机构、出版社、国家图书馆/馆藏目录和作者/机构页面建立框架。心理学实践需由合格专业人员评估，本图不构成诊断或治疗建议。',
+          mapTitle: '知识框架地图',
+          mapSubtitle: '15 个节点不是同一种东西：它们被整合为理论传统、基础科学、临床组织、应用与情境四层。',
+          coreQuestion: '核心问题',
+          keyIdeas: '主要观点',
+          relation: '与荣格路径的关系',
+          people: '代表人物',
+          works: '入门读物',
+          evidence: '证据入口',
+          era: '时期',
+          field: '领域',
+          point: '主要论述',
+          layer: '上位层级',
+        },
+        en: {
+          eyebrow: 'Research map · depth psychology to contemporary science',
+          title: 'From Jung to Contemporary Psychology',
+          subtitle:
+            'An evidence-oriented map that places depth psychology, psychoanalysis, cognitive-behavioral science, neuroscience, clinical medicine, development, and sociocultural psychology in one navigable framework.',
+          frameworks: 'Frameworks',
+          navNote: 'Select a framework to see its core question, figures, claims, and relation to the Jungian lineage.',
+          peopleTitle: 'Major Figures',
+          peopleNote:
+            'Figures are not assigned by a three-or-four-person quota. They are included for conceptual originality, historical influence, and explanatory value; counts come from the actual entries below and therefore vary by node.',
+          booksTitle: 'Public-Facing Books',
+          booksNote: 'Each node now has several ways in: a concise overview, biography or memoir, theory primer, and practical application. Translation titles vary by edition and region.',
+          bookAll: 'All books',
+          bookOverview: 'Quick overview',
+          bookBiography: 'Lives & memoirs',
+          bookTheory: 'Theory primer',
+          bookPractice: 'Life application',
+          sourcesTitle: 'Evidence Sources',
+          sourcesNote:
+            'This version prioritizes professional associations, governmental/international bodies, publishers, national library records, and institutional pages. It is not diagnostic or treatment advice.',
+          mapTitle: 'Knowledge Framework Map',
+          mapSubtitle: 'The 15 nodes are not peers of one kind: they sit within four layers—traditions, basic science, clinical organization, and applied/contextual work.',
+          coreQuestion: 'Core question',
+          keyIdeas: 'Key ideas',
+          relation: 'Relation to Jungian path',
+          people: 'Representative figures',
+          works: 'Public books',
+          evidence: 'Evidence entry',
+          era: 'Era',
+          field: 'Field',
+          point: 'Main claim',
+          layer: 'Upper layer',
+        },
+        ja: {
+          eyebrow: 'Research map · depth psychology to contemporary science',
+          title: 'ユングから現代心理学体系へ',
+          subtitle:
+            '深層心理学、精神分析、認知行動科学、神経科学、臨床医学、発達心理学、社会文化心理学を一枚の地図に置き、人間の思考・感情・行動・変化をどう説明するかを整理する。',
+          frameworks: '理論枠組み',
+          navNote: '枠組みを選ぶと、中心問題、人物、主要論点、ユング系譜との関係が見られます。',
+          peopleTitle: '主要人物の系譜',
+          peopleNote:
+            '各群を3～4人にそろえる配分ではありません。概念上の独創性、歴史的影響、各ノードを説明する力で選び、人数は下の実際の人物項目から算出しています。',
+          booksTitle: '一般向け主要書',
+          booksNote: '各ノードに、短い概説、伝記・回想、理論入門、生活への応用という複数の入口を用意しました。訳題は版・地域により異なります。',
+          bookAll: 'すべて',
+          bookOverview: '短い概説',
+          bookBiography: '人物・回想',
+          bookTheory: '理論入門',
+          bookPractice: '生活への応用',
+          sourcesTitle: '出典',
+          sourcesNote:
+            '学会、政府・国際機関、出版社、国立図書館・所蔵目録、機関ページを優先しました。本図は診断・治療助言ではありません。',
+          mapTitle: '知識枠組みマップ',
+          mapSubtitle: '15項目は同種の並列分類ではなく、理論伝統、基礎科学、臨床的整理、応用・文脈の4層に統合。',
+          coreQuestion: '中心問題',
+          keyIdeas: '主要論点',
+          relation: 'ユング系譜との関係',
+          people: '代表人物',
+          works: '一般向け書籍',
+          evidence: '出典入口',
+          era: '時期',
+          field: '領域',
+          point: '主要な主張',
+          layer: '上位層',
+        },
+      };
+
+      const sources = [
+        ['apa-subfields', 'APA Psychology subfields', 'https://www.apa.org/education-career/guide/subfields', 'Defines broad contemporary psychology subfields.'],
+        ['apa-therapy', 'APA approaches to psychotherapy', 'https://www.apa.org/topics/psychotherapy/approaches', 'Groups psychotherapy into psychoanalytic/psychodynamic, behavioral, cognitive, humanistic, and integrative traditions.'],
+        ['apa-ebpp', 'APA evidence-based practice statement', 'https://www.apa.org/practice/guidelines/evidence-based-statement.html', 'Defines evidence-based practice as integration of research, clinical expertise, and patient context.'],
+        ['apa-specialties', 'APA recognized specialties', 'https://www.apa.org/ed/graduate/specialize/recognized.html', 'Lists recognized professional psychology specialties and proficiencies.'],
+        ['nimh-rdoc', 'NIMH RDoC', 'https://www.nimh.nih.gov/research/research-funded-by-nimh/rdoc/about-rdoc', 'Research framework for mental disorders using domains, constructs, and units of analysis.'],
+        ['who-icd11', 'WHO ICD-11 CDDR', 'https://www.who.int/publications/i/item/9789240077263', 'Clinical descriptions and diagnostic requirements for mental, behavioural and neurodevelopmental disorders.'],
+        ['dsm5tr', 'American Psychiatric Association DSM-5-TR', 'https://www.psychiatry.org/psychiatrists/practice/dsm/about-dsm', 'DSM-5-TR components and role in diagnostic classification.'],
+        ['nice-depression', 'NICE depression guideline NG222', 'https://www.nice.org.uk/guidance/ng222/chapter/Recommendations', 'Evidence-based psychological and medical care recommendations for depression.'],
+        ['nice-ptsd', 'NICE PTSD guideline NG116', 'https://www.nice.org.uk/guidance/ng116/chapter/recommendations', 'Trauma-focused CBT and PTSD treatment recommendations.'],
+        ['iajs', 'International Association for Jungian Studies', 'https://jungstudies.net/about-the-iajs/', 'Jungian and post-Jungian studies as a multidisciplinary scholarly field.'],
+        ['jung-chicago', 'C. G. Jung Institute of Chicago', 'https://jungchicago.org/about/', 'Historical note on analytical psychology emerging from psychoanalysis.'],
+        ['apa-humanistic', 'APA Division 32 humanistic psychology', 'https://www.apa.org/about/division/div32', 'Humanistic psychology as holistic, phenomenological, sociocultural, and meaning-oriented.'],
+        ['apa-neuro', 'APA neuropsychology topic', 'https://www.apa.org/topics/neuropsychology', 'Neuropsychology studies nervous system processes in relation to behavior and cognition.'],
+        ['apa-health', 'APA clinical health psychology', 'https://www.apa.org/ed/graduate/specialize/health', 'Health psychology integrates psychological, social, cultural, and biological factors.'],
+        ['abct-dbt', 'ABCT DBT fact sheet', 'https://www.abct.org/fact-sheets/dialectical-behavior-therapy/', 'DBT as a cognitive-behavioral therapy balancing acceptance and change.'],
+        ['prh-jung-symbols', 'Penguin Random House: Man and His Symbols', 'https://www.penguinrandomhouse.com/books/89056/man-and-his-symbols-by-carl-g-jung/9780593499993/', 'Publisher page for Jung public-facing symbolic psychology text.'],
+        ['frankl-books', 'Viktor Frankl Institute books', 'https://www.viktorfrankl.org/books_by_vf.html', 'Lists Frankl editions and translations including Man’s Search for Meaning.'],
+        ['prh-kahneman', 'Penguin Random House: Thinking, Fast and Slow', 'https://www.penguinrandomhouse.com/books/89308/thinking-fast-and-slow-by-daniel-kahneman/', 'Publisher page for Kahneman public synthesis.'],
+        ['prh-sapolsky', 'Penguin Random House: Behave', 'https://www.penguinrandomhouse.com/books/311787/behave-by-robert-m-sapolsky/', 'Publisher page for Sapolsky behavior synthesis.'],
+        ['kabat-zinn', 'Jon Kabat-Zinn: Full Catastrophe Living', 'https://jonkabat-zinn.com/book/full-catastrophe-livingusing-the-wisdom-of-your-body-and-mind-to-face-stress-pain-and-illness-second-edition-revised-and-updated/', 'Author page for MBSR public text.'],
+        ['damasio', 'Penguin Random House: Descartes’ Error', 'https://www.penguinrandomhouseretail.com/book/?isbn=9780143036227', 'Publisher page for Damasio’s emotion/reason book.'],
+        ['prh-body-score', 'Penguin Random House: The Body Keeps the Score', 'https://www.penguinrandomhouse.com/books/313183/the-body-keeps-the-score-by-bessel-van-der-kolk-md/', 'Publisher page for van der Kolk’s public trauma synthesis.'],
+        ['harper-feeling-good', 'HarperCollins: Feeling Good', 'https://www.harperacademic.com/book/9780380731763/feeling-good/', 'Publisher page for Burns’s cognitive therapy self-help classic.'],
+        ['harper-flow', 'HarperCollins: Flow', 'https://www.harperacademic.com/book/9780061339202/flow/', 'Publisher page for Csikszentmihalyi’s flow book.'],
+        ['simon-flourish', 'Simon & Schuster: Flourish', 'https://www.simonandschuster.com/books/Flourish/Martin-E-P-Seligman/9781439190760', 'Publisher page for Seligman’s well-being book.'],
+        ['hachette-happiness', 'Hachette: The Happiness Hypothesis', 'https://www.hachettebookgroup.com/titles/jonathan-haidt/the-happiness-hypothesis/9780465028023/', 'Publisher page for Haidt’s social and moral psychology synthesis.'],
+        ['oup-psychology', 'Oxford: Psychology — A Very Short Introduction', 'https://academic.oup.com/book/610', 'A concise field-wide introduction written for non-specialists.'],
+        ['oup-jung', 'Oxford: Jung — A Very Short Introduction', 'https://www.oupjapan.co.jp/en/products/detail/1317?language=en', 'Anthony Stevens introduces Jung’s life and central concepts in a compact form.'],
+        ['oup-freud', 'Oxford: Freud — A Very Short Introduction', 'https://academic.oup.com/book/433', 'Anthony Storr’s concise introduction to Freud’s life, work, and legacy.'],
+        ['grosz-examined', 'Stephen Grosz: The Examined Life', 'https://stephengrosz.com/books/the-examined-life/', 'Psychoanalytic case stories written without specialist jargon.'],
+        ['simon-pryor', 'Simon & Schuster: Don’t Shoot the Dog', 'https://www.simonandschuster.com/books/Dont-Shoot-the-Dog/Karen-Pryor/9781982106461', 'An accessible explanation of reinforcement and behavior change.'],
+        ['ilabs-scientist', 'I-LABS: The Scientist in the Crib', 'https://ilabs.uw.edu/scientist-crib-preface/', 'An introduction to the science of children’s minds.'],
+        ['prh-kandel', 'Penguin Random House: In Search of Memory', 'https://www.penguinrandomhouse.ca/books/403658/in-search-of-memory-by-eric-kandel/9780393329377', 'Memoir, history, and science of the biological basis of memory.'],
+        ['open-library', 'Open Library catalog', 'https://openlibrary.org/search', 'Catalog search used where a stable publisher page is not available.'],
+      ];
+
+      const domains = [
+        {
+          id: 'jungian',
+          color: '#007f7a',
+          x: 500,
+          y: 360,
+          size: 142,
+          title: { zh: '荣格与深度心理学', en: 'Jungian / Depth Psychology', ja: 'ユング派・深層心理学' },
+          tag: { zh: '意义与象征', en: 'Meaning & symbols', ja: '意味と象徴' },
+          question: {
+            zh: '无意识、梦、神话与象征如何塑造人格发展？',
+            en: 'How do unconscious processes, dreams, myth, and symbols shape personality development?',
+            ja: '無意識、夢、神話、象徴は人格発達をどう形づくるか。',
+          },
+          ideas: {
+            zh: ['集体无意识与原型', '个体化与自性', '阴影、人格面具、阿尼玛/阿尼姆斯', '符号与文化想象'],
+            en: ['Collective unconscious and archetypes', 'Individuation and the Self', 'Shadow, persona, anima/animus', 'Symbolic and cultural imagination'],
+            ja: ['集合的無意識と元型', '個性化と自己', '影・ペルソナ・アニマ/アニムス', '象徴と文化的想像力'],
+          },
+          relation: {
+            zh: '它是本图入口：从临床精神病学和精神分析中分化，同时保留“意义、梦、象征”的问题意识。',
+            en: 'This is the entry point: it split from psychiatry and psychoanalysis while retaining questions of meaning, dreams, and symbols.',
+            ja: '本図の入口。精神医学・精神分析から分化しつつ、意味・夢・象徴の問いを保持した。',
+          },
+          people: ['Jung', 'Marie-Louise von Franz', 'James Hillman', 'Andrew Samuels'],
+          books: ['Man and His Symbols', 'Memories, Dreams, Reflections'],
+          sources: ['jung-chicago', 'iajs', 'prh-jung-symbols'],
+        },
+        {
+          id: 'psychodynamic',
+          color: '#675aa9',
+          x: 300,
+          y: 260,
+          size: 126,
+          title: { zh: '精神分析/心理动力', en: 'Psychoanalytic / Psychodynamic', ja: '精神分析・心理力動' },
+          tag: { zh: '无意识与关系', en: 'Unconscious & relations', ja: '無意識と関係' },
+          question: { zh: '早期关系、冲突、防御和移情如何影响当下？', en: 'How do early relationships, conflict, defenses, and transference shape the present?', ja: '早期関係、葛藤、防衛、転移は現在をどう形づくるか。' },
+          ideas: {
+            zh: ['无意识冲突', '防御机制', '客体关系与依恋', '治疗关系作为改变场域'],
+            en: ['Unconscious conflict', 'Defense mechanisms', 'Object relations and attachment', 'Therapeutic relationship as a field of change'],
+            ja: ['無意識的葛藤', '防衛機制', '対象関係と愛着', '治療関係を変化の場として扱う'],
+          },
+          relation: { zh: '荣格从弗洛伊德运动中分化，但后荣格学派仍持续与客体关系、依恋和关系精神分析对话。', en: 'Jung separated from Freud, yet post-Jungian work continues to converse with object relations, attachment, and relational psychoanalysis.', ja: 'ユングはフロイトから分岐したが、ポスト・ユング派は対象関係、愛着、関係精神分析と対話し続けた。' },
+          people: ['Sigmund Freud', 'Melanie Klein', 'Donald Winnicott', 'John Bowlby'],
+          books: ['The Interpretation of Dreams', 'Attachment'],
+          sources: ['apa-therapy', 'apa-specialties'],
+        },
+        {
+          id: 'behavioral',
+          color: '#4f7d56',
+          x: 305,
+          y: 510,
+          size: 116,
+          title: { zh: '行为与学习科学', en: 'Behavioral & Learning Science', ja: '行動・学習科学' },
+          tag: { zh: '环境塑造行为', en: 'Environment shapes action', ja: '環境が行動を形成' },
+          question: { zh: '行为如何被条件反射、强化、观察学习和情境维持？', en: 'How are actions shaped by conditioning, reinforcement, observation, and context?', ja: '行動は条件づけ、強化、観察学習、文脈によりどう維持されるか。' },
+          ideas: {
+            zh: ['经典条件作用', '操作性条件作用', '暴露与行为激活', '社会学习'],
+            en: ['Classical conditioning', 'Operant conditioning', 'Exposure and behavioral activation', 'Social learning'],
+            ja: ['古典的条件づけ', 'オペラント条件づけ', '曝露と行動活性化', '社会的学習'],
+          },
+          relation: { zh: '它挑战“只解释内在意义”的路径，把可观察行为和环境反馈放到中心。', en: 'It challenges meaning-only accounts by putting observable behavior and environmental feedback at the center.', ja: '内的意味だけでなく、観察可能な行動と環境フィードバックを中心に置く。' },
+          people: ['Ivan Pavlov', 'B. F. Skinner', 'Albert Bandura', 'Joseph Wolpe'],
+          books: ['Science and Human Behavior'],
+          sources: ['apa-therapy'],
+        },
+        {
+          id: 'cognitive',
+          color: '#496ea8',
+          x: 505,
+          y: 585,
+          size: 124,
+          title: { zh: '认知科学与 CBT', en: 'Cognitive Science & CBT', ja: '認知科学とCBT' },
+          tag: { zh: '思维影响情绪', en: 'Thinking shapes emotion', ja: '思考が感情を形づくる' },
+          question: { zh: '信念、注意、解释和决策偏差如何改变情绪与行为？', en: 'How do beliefs, attention, interpretations, and biases alter emotion and behavior?', ja: '信念、注意、解釈、バイアスは感情と行動をどう変えるか。' },
+          ideas: {
+            zh: ['自动思维与图式', '认知重评', '双系统决策', '问题解决与技能训练'],
+            en: ['Automatic thoughts and schemas', 'Cognitive reappraisal', 'Dual-process decision making', 'Problem solving and skills practice'],
+            ja: ['自動思考とスキーマ', '認知的再評価', '二重過程意思決定', '問題解決とスキル訓練'],
+          },
+          relation: { zh: '它把“意义”转化为可检验的认知过程，是现代临床和行为经济学的重要桥。', en: 'It translates meaning into testable cognitive processes, bridging clinical practice and behavioral economics.', ja: '意味を検証可能な認知過程へ翻訳し、臨床と行動経済学をつなぐ。' },
+          people: ['Aaron Beck', 'Albert Ellis', 'Daniel Kahneman', 'Amos Tversky'],
+          books: ['Feeling Good', 'Thinking, Fast and Slow'],
+          sources: ['apa-therapy', 'prh-kahneman'],
+        },
+        {
+          id: 'contextual',
+          color: '#3f8c77',
+          x: 700,
+          y: 515,
+          size: 108,
+          title: { zh: '第三波 CBT/情境疗法', en: 'Third-Wave / Contextual Therapies', ja: '第三世代CBT・文脈療法' },
+          tag: { zh: '接纳、价值、技能', en: 'Acceptance, values, skills', ja: '受容・価値・技能' },
+          question: { zh: '人能否不消除痛苦，而是改变与痛苦的关系？', en: 'Can people change their relationship to distress rather than eliminate it first?', ja: '苦痛を消す前に、苦痛との関係を変えられるか。' },
+          ideas: {
+            zh: ['接纳与承诺', '辩证行为疗法', '正念与去融合', '价值导向行动'],
+            en: ['Acceptance and commitment', 'Dialectical behavior therapy', 'Mindfulness and defusion', 'Values-guided action'],
+            ja: ['アクセプタンス&コミットメント', '弁証法的行動療法', 'マインドフルネスと脱フュージョン', '価値に基づく行動'],
+          },
+          relation: { zh: '它在科学化行为疗法中重新容纳“意义、痛苦、接纳”等接近存在主义和荣格的问题。', en: 'It reintroduces meaning, suffering, and acceptance into scientifically oriented behavioral therapy.', ja: '科学的行動療法に、意味・苦痛・受容という実存的/ユング的問いを再導入する。' },
+          people: ['Marsha Linehan', 'Steven Hayes', 'Zindel Segal', 'Jon Kabat-Zinn'],
+          books: ['Building a Life Worth Living', 'Full Catastrophe Living'],
+          sources: ['abct-dbt', 'kabat-zinn', 'nice-depression'],
+        },
+        {
+          id: 'humanistic',
+          color: '#c58b32',
+          x: 505,
+          y: 160,
+          size: 118,
+          title: { zh: '人本/存在主义', en: 'Humanistic / Existential', ja: '人間性・実存心理学' },
+          tag: { zh: '自由、意义、自我实现', en: 'Freedom, meaning, growth', ja: '自由・意味・成長' },
+          question: { zh: '人在痛苦中如何选择、承担意义并走向成长？', en: 'How do people choose, make meaning, and grow through suffering?', ja: '人はいかに選択し、意味を担い、苦悩を通して成長するか。' },
+          ideas: {
+            zh: ['无条件积极关注', '自我实现', '意义治疗', '死亡、孤独、自由、无意义'],
+            en: ['Unconditional positive regard', 'Self-actualization', 'Logotherapy', 'Death, isolation, freedom, meaninglessness'],
+            ja: ['無条件の肯定的関心', '自己実現', 'ロゴセラピー', '死・孤独・自由・無意味'],
+          },
+          relation: { zh: '与荣格共同关心人格完整和意义，但更强调经验、选择与治疗关系。', en: 'It shares Jung’s concern with wholeness and meaning, while emphasizing lived experience, choice, and the therapeutic relationship.', ja: '全体性と意味への関心を共有しつつ、経験・選択・治療関係を重視する。' },
+          people: ['Carl Rogers', 'Abraham Maslow', 'Viktor Frankl', 'Irvin Yalom'],
+          books: ['Man’s Search for Meaning', 'On Becoming a Person'],
+          sources: ['apa-humanistic', 'frankl-books'],
+        },
+        {
+          id: 'neuro',
+          color: '#2f668f',
+          x: 705,
+          y: 260,
+          size: 126,
+          title: { zh: '神经科学/神经心理', en: 'Neuroscience / Neuropsychology', ja: '神経科学・神経心理学' },
+          tag: { zh: '脑-身-行为', en: 'Brain-body-behavior', ja: '脳・身体・行動' },
+          question: { zh: '神经环路、身体状态、情绪和激素如何生成行为？', en: 'How do circuits, body states, emotion, and hormones produce behavior?', ja: '神経回路、身体状態、情動、ホルモンは行動をどう生むか。' },
+          ideas: {
+            zh: ['情绪不是理性的敌人', '脑网络与可塑性', '压力生物学', '跨层级解释行为'],
+            en: ['Emotion is not the enemy of reason', 'Brain networks and plasticity', 'Biology of stress', 'Multi-level explanation of behavior'],
+            ja: ['情動は理性の敵ではない', '脳ネットワークと可塑性', 'ストレス生物学', '多層的行動説明'],
+          },
+          relation: { zh: '它把“心灵图像”推进到脑、身体和生理调节层面，也提醒任何象征解释都要接受生物证据校正。', en: 'It moves psyche-talk into brain, body, and regulation, forcing symbolic accounts to meet biological evidence.', ja: '心の語りを脳・身体・調節へ接続し、象徴解釈を生物学的証拠で校正する。' },
+          people: ['Antonio Damasio', 'Joseph LeDoux', 'Eric Kandel', 'Robert Sapolsky'],
+          books: ['Descartes’ Error', 'Behave'],
+          sources: ['apa-neuro', 'nimh-rdoc', 'damasio', 'prh-sapolsky'],
+        },
+        {
+          id: 'clinical',
+          color: '#b8525e',
+          x: 830,
+          y: 385,
+          size: 122,
+          title: { zh: '临床医学/精神病学', en: 'Clinical Medicine / Psychiatry', ja: '臨床医学・精神医学' },
+          tag: { zh: '诊断与治疗系统', en: 'Diagnosis & care systems', ja: '診断と治療体系' },
+          question: { zh: '如何可靠命名痛苦，并把人送到有效、可及的照护中？', en: 'How can suffering be named reliably and connected to effective care?', ja: '苦痛を信頼できる形で名づけ、有効なケアへつなぐには。' },
+          ideas: {
+            zh: ['DSM/ICD 分类', '临床判断与鉴别诊断', '药物、心理治疗与整合照护', '指南和风险管理'],
+            en: ['DSM/ICD classification', 'Clinical judgment and differential diagnosis', 'Medication, psychotherapy, integrated care', 'Guidelines and risk management'],
+            ja: ['DSM/ICD分類', '臨床判断と鑑別診断', '薬物療法・心理療法・統合ケア', 'ガイドラインとリスク管理'],
+          },
+          relation: { zh: '荣格本人来自精神医学；当代临床体系则更强调诊断可靠性、循证治疗和公共卫生。', en: 'Jung came from psychiatry; contemporary systems emphasize diagnostic reliability, evidence-based care, and public health.', ja: 'ユング自身は精神医学出身。現代臨床は診断信頼性、エビデンス、公共衛生を重視する。' },
+          people: ['Emil Kraepelin', 'Eugen Bleuler', 'Allen Frances', 'Thomas Insel'],
+          books: ['DSM-5-TR', 'ICD-11 CDDR'],
+          sources: ['who-icd11', 'dsm5tr', 'apa-ebpp', 'nice-depression'],
+        },
+        {
+          id: 'rdoc',
+          color: '#345c82',
+          x: 835,
+          y: 620,
+          size: 106,
+          title: { zh: 'RDoC/维度化研究', en: 'RDoC / Dimensional Research', ja: 'RDoC・次元的研究' },
+          tag: { zh: '跨诊断机制', en: 'Transdiagnostic mechanisms', ja: '診断横断的機制' },
+          question: { zh: '能否超越症状标签，用神经行为功能维度研究精神障碍？', en: 'Can mental disorders be studied through neurobehavioral dimensions rather than symptom labels alone?', ja: '症状ラベルだけでなく神経行動次元から精神障害を研究できるか。' },
+          ideas: {
+            zh: ['负性/正性效价', '认知系统', '社会过程', '唤醒与调节', '基因、环路、行为、自陈等分析单位'],
+            en: ['Negative/positive valence', 'Cognitive systems', 'Social processes', 'Arousal and regulation', 'Genes, circuits, behavior, self-report units'],
+            ja: ['負性/正性価', '認知システム', '社会過程', '覚醒と調節', '遺伝子・回路・行動・自己報告'],
+          },
+          relation: { zh: '它几乎走到荣格象征解释的另一极：用可测量系统重新切割心理痛苦。', en: 'It sits near the opposite pole from symbolic interpretation: carving distress by measurable systems.', ja: '象徴解釈の対極に近く、測定可能なシステムで苦痛を切り分ける。' },
+          people: ['Thomas Insel', 'Bruce Cuthbert', 'NIMH Workgroups'],
+          books: ['RDoC Matrix'],
+          sources: ['nimh-rdoc'],
+        },
+        {
+          id: 'developmental',
+          color: '#9c7246',
+          x: 160,
+          y: 385,
+          size: 116,
+          title: { zh: '发展/依恋/生命周期', en: 'Development / Attachment / Lifespan', ja: '発達・愛着・生涯発達' },
+          tag: { zh: '人成为人的过程', en: 'Becoming across life', ja: '人になる過程' },
+          question: { zh: '从婴儿到老年，认知、情绪与关系如何分阶段改变？', en: 'How do cognition, emotion, and relationships change from infancy to old age?', ja: '乳幼児から老年まで、認知・情動・関係はどう変化するか。' },
+          ideas: {
+            zh: ['认知发展阶段', '社会文化脚手架', '依恋模式', '生态系统与生命周期'],
+            en: ['Cognitive developmental stages', 'Sociocultural scaffolding', 'Attachment patterns', 'Ecological systems and lifespan'],
+            ja: ['認知発達段階', '社会文化的足場かけ', '愛着パターン', '生態システムと生涯発達'],
+          },
+          relation: { zh: '个体化可以被重新放进生命周期：不同年龄有不同的发展任务、依恋风险和环境支持。', en: 'Individuation can be re-situated in lifespan development, with age-specific tasks, attachment risks, and environmental supports.', ja: '個性化を生涯発達の中に置き直し、年齢ごとの課題・愛着リスク・環境支援を見る。' },
+          people: ['Jean Piaget', 'Lev Vygotsky', 'John Bowlby', 'Urie Bronfenbrenner'],
+          books: ['Attachment', 'The Ecology of Human Development'],
+          sources: ['apa-subfields'],
+        },
+        {
+          id: 'social',
+          color: '#7b5a9f',
+          x: 500,
+          y: 725,
+          size: 106,
+          title: { zh: '社会/文化/群体心理', en: 'Social / Cultural / Group Psychology', ja: '社会・文化・集団心理学' },
+          tag: { zh: '人在关系中行动', en: 'Mind in relation', ja: '関係の中の心' },
+          question: { zh: '群体、身份、规范、偏见和文化如何塑造自我？', en: 'How do groups, identity, norms, prejudice, and culture shape the self?', ja: '集団、アイデンティティ、規範、偏見、文化は自己をどう形づくるか。' },
+          ideas: {
+            zh: ['社会影响', '认知失调', '社会认同', '文化自我与共同体'],
+            en: ['Social influence', 'Cognitive dissonance', 'Social identity', 'Cultural self and community'],
+            ja: ['社会的影響', '認知的不協和', '社会的アイデンティティ', '文化的自己と共同体'],
+          },
+          relation: { zh: '它把荣格所谓“集体层面”从神话结构转到可研究的群体、规范、文化和制度。', en: 'It translates collective dimensions from mythic structure into groups, norms, culture, and institutions.', ja: '集合的次元を神話構造から、研究可能な集団・規範・文化・制度へ移す。' },
+          people: ['Gordon Allport', 'Kurt Lewin', 'Leon Festinger', 'Henri Tajfel'],
+          books: ['The Nature of Prejudice', 'The Happiness Hypothesis'],
+          sources: ['apa-subfields'],
+        },
+        {
+          id: 'health',
+          color: '#678b47',
+          x: 690,
+          y: 115,
+          size: 105,
+          title: { zh: '健康/行为医学', en: 'Health Psychology / Behavioral Medicine', ja: '健康心理学・行動医学' },
+          tag: { zh: '心理进入医疗系统', en: 'Psychology in healthcare', ja: '医療の中の心理学' },
+          question: { zh: '行为、压力、社会支持和医疗依从性如何影响身体健康？', en: 'How do behavior, stress, social support, and adherence affect physical health?', ja: '行動、ストレス、社会的支援、アドヒアランスは身体健康にどう影響するか。' },
+          ideas: {
+            zh: ['生物-心理-社会模型', '压力与慢病', '行为改变', '整合照护与公共卫生'],
+            en: ['Biopsychosocial model', 'Stress and chronic disease', 'Behavior change', 'Integrated care and public health'],
+            ja: ['生物心理社会モデル', 'ストレスと慢性疾患', '行動変容', '統合ケアと公衆衛生'],
+          },
+          relation: { zh: '它把“身心关系”变成临床路径：疼痛、慢病、睡眠、饮食、成瘾、医疗沟通。', en: 'It turns mind-body questions into care pathways: pain, chronic illness, sleep, diet, addiction, and medical communication.', ja: '心身関係を疼痛、慢性疾患、睡眠、食、依存、医療コミュニケーションのケア経路へ変える。' },
+          people: ['George Engel', 'Jon Kabat-Zinn', 'Shelley Taylor', 'Julian Rotter'],
+          books: ['Full Catastrophe Living', 'Why Zebras Don’t Get Ulcers'],
+          sources: ['apa-health', 'kabat-zinn'],
+        },
+        {
+          id: 'trauma',
+          color: '#a64c4e',
+          x: 150,
+          y: 620,
+          size: 104,
+          title: { zh: '创伤/身体取向', en: 'Trauma / Somatic Approaches', ja: 'トラウマ・身体志向' },
+          tag: { zh: '身体记忆与安全', en: 'Body memory & safety', ja: '身体記憶と安全' },
+          question: { zh: '创伤如何改变记忆、神经调节、身体感和关系安全？', en: 'How does trauma alter memory, regulation, bodily experience, and relational safety?', ja: 'トラウマは記憶、調節、身体感覚、関係安全をどう変えるか。' },
+          ideas: {
+            zh: ['创伤记忆与回避', '神经调节和安全感', '创伤聚焦 CBT/EMDR', '身体觉察和关系修复'],
+            en: ['Traumatic memory and avoidance', 'Regulation and safety', 'Trauma-focused CBT/EMDR', 'Body awareness and relational repair'],
+            ja: ['トラウマ記憶と回避', '調節と安全感', 'トラウマ焦点化CBT/EMDR', '身体認識と関係修復'],
+          },
+          relation: { zh: '与荣格的“象征创伤/神话化理解”不同，当代创伤研究更强调神经调节、证据疗法和安全重建。', en: 'Unlike symbolic/mythic readings, contemporary trauma work emphasizes regulation, evidence-based treatment, and rebuilding safety.', ja: '象徴的理解よりも、調節、エビデンス治療、安全の再構築を重視する。' },
+          people: ['Bessel van der Kolk', 'Judith Herman', 'Francine Shapiro', 'Edna Foa'],
+          books: ['The Body Keeps the Score', 'Trauma and Recovery'],
+          sources: ['nice-ptsd', 'prh-body-score'],
+        },
+        {
+          id: 'positive',
+          color: '#d6a441',
+          x: 185,
+          y: 130,
+          size: 104,
+          title: { zh: '积极心理/福祉科学', en: 'Positive Psychology / Well-being', ja: 'ポジティブ心理学・ウェルビーイング' },
+          tag: { zh: '不仅治病，也研究繁荣', en: 'Beyond illness to flourishing', ja: '病理を超えた繁栄' },
+          question: { zh: '幸福、优势、意义、心流和关系如何被研究和培养？', en: 'How can happiness, strengths, meaning, flow, and relationships be studied and cultivated?', ja: '幸福、強み、意味、フロー、関係はどう研究・育成されるか。' },
+          ideas: {
+            zh: ['PERMA', '心流', '自我决定', '品格优势与韧性'],
+            en: ['PERMA', 'Flow', 'Self-determination', 'Character strengths and resilience'],
+            ja: ['PERMA', 'フロー', '自己決定', '性格的強みとレジリエンス'],
+          },
+          relation: { zh: '它把“完整人格/生命意义”转向可测量的幸福、优势和关系质量。', en: 'It turns wholeness and meaning into measurable well-being, strengths, and relationship quality.', ja: '全体性と意味を測定可能な幸福、強み、関係性へ変換する。' },
+          people: ['Martin Seligman', 'Mihaly Csikszentmihalyi', 'Edward Deci', 'Richard Ryan'],
+          books: ['Flourish', 'Flow'],
+          sources: ['apa-subfields', 'simon-flourish', 'harper-flow'],
+        },
+        {
+          id: 'systems',
+          color: '#596b75',
+          x: 842,
+          y: 145,
+          size: 98,
+          title: { zh: '系统/家庭/组织', en: 'Systems / Family / Organizations', ja: 'システム・家族・組織' },
+          tag: { zh: '个体嵌在系统里', en: 'Person inside systems', ja: 'システム内の個人' },
+          question: { zh: '家庭、学校、组织和制度如何维持问题或制造改变？', en: 'How do families, schools, organizations, and institutions maintain problems or enable change?', ja: '家族、学校、組織、制度は問題維持や変化をどう生むか。' },
+          ideas: {
+            zh: ['家庭系统', '组织行为', '人因工程', '社区与制度干预'],
+            en: ['Family systems', 'Organizational behavior', 'Human factors', 'Community and institutional interventions'],
+            ja: ['家族システム', '組織行動', 'ヒューマンファクター', 'コミュニティ・制度介入'],
+          },
+          relation: { zh: '它提醒我们不要只在个体内部找答案：很多“心理问题”被关系网络和制度环境维持。', en: 'It warns against locating all answers inside the individual; many problems are maintained by relational and institutional systems.', ja: '答えを個人内部だけに置かず、関係網と制度環境を見る。' },
+          people: ['Murray Bowen', 'Salvador Minuchin', 'Kurt Lewin', 'Edgar Schein'],
+          books: ['Family Therapy in Clinical Practice', 'Organizational Culture and Leadership'],
+          sources: ['apa-subfields', 'apa-specialties'],
+        },
+      ];
+
+      const links = [
+        ['jungian', 'psychodynamic'], ['jungian', 'humanistic'], ['jungian', 'developmental'], ['jungian', 'social'],
+        ['psychodynamic', 'developmental'], ['developmental', 'social'], ['behavioral', 'cognitive'], ['cognitive', 'contextual'],
+        ['contextual', 'health'], ['health', 'clinical'], ['trauma', 'clinical'], ['trauma', 'neuro'],
+        ['neuro', 'rdoc'], ['rdoc', 'clinical'], ['clinical', 'contextual'], ['clinical', 'psychodynamic'],
+        ['positive', 'humanistic'], ['positive', 'social'], ['systems', 'social'], ['systems', 'health'], ['neuro', 'cognitive'],
+      ];
+
+      const people = [
+        ['Carl Gustav Jung', '1875-1961', 'jungian', { zh: '分析心理学、集体无意识、原型、个体化。', en: 'Analytical psychology, collective unconscious, archetypes, individuation.', ja: '分析心理学、集合的無意識、元型、個性化。' }],
+        ['Sigmund Freud', '1856-1939', 'psychodynamic', { zh: '精神分析、无意识冲突、梦和症状解释。', en: 'Psychoanalysis, unconscious conflict, dreams and symptoms.', ja: '精神分析、無意識的葛藤、夢と症状の解釈。' }],
+        ['Marie-Louise von Franz', '1915-1998', 'jungian', { zh: '童话、炼金术与原型解释。', en: 'Fairy tales, alchemy, and archetypal interpretation.', ja: '童話、錬金術、元型解釈。' }],
+        ['James Hillman', '1926-2011', 'jungian', { zh: '原型心理学，强调图像、灵魂语言与文化想象。', en: 'Archetypal psychology, images, soul-language, cultural imagination.', ja: '元型的心理学、イメージ、魂の言語、文化的想像力。' }],
+        ['Melanie Klein', '1882-1960', 'psychodynamic', { zh: '儿童精神分析与客体关系。', en: 'Child psychoanalysis and object relations.', ja: '児童精神分析と対象関係。' }],
+        ['Donald Winnicott', '1896-1971', 'psychodynamic', { zh: '抱持环境、真/假自体、过渡客体。', en: 'Holding environment, true/false self, transitional objects.', ja: '抱える環境、真/偽自己、移行対象。' }],
+        ['John Bowlby', '1907-1990', 'developmental', { zh: '依恋理论连接发展、关系和临床风险。', en: 'Attachment theory connecting development, relationships, and clinical risk.', ja: '愛着理論により発達・関係・臨床リスクを接続。' }],
+        ['Jean Piaget', '1896-1980', 'developmental', { zh: '儿童认知发展阶段。', en: 'Stages of child cognitive development.', ja: '子どもの認知発達段階。' }],
+        ['Lev Vygotsky', '1896-1934', 'developmental', { zh: '社会文化学习与最近发展区。', en: 'Sociocultural learning and zone of proximal development.', ja: '社会文化的学習と最近接発達領域。' }],
+        ['B. F. Skinner', '1904-1990', 'behavioral', { zh: '操作性条件作用与强化。', en: 'Operant conditioning and reinforcement.', ja: 'オペラント条件づけと強化。' }],
+        ['Albert Bandura', '1925-2021', 'behavioral', { zh: '社会学习、自我效能。', en: 'Social learning and self-efficacy.', ja: '社会的学習と自己効力感。' }],
+        ['Aaron Beck', '1921-2021', 'cognitive', { zh: '认知治疗，抑郁的自动思维和图式。', en: 'Cognitive therapy, automatic thoughts and schemas in depression.', ja: '認知療法、抑うつの自動思考とスキーマ。' }],
+        ['Albert Ellis', '1913-2007', 'cognitive', { zh: '理性情绪行为疗法。', en: 'Rational emotive behavior therapy.', ja: '論理情動行動療法。' }],
+        ['Daniel Kahneman', '1934-2024', 'cognitive', { zh: '双系统、启发式、偏差和决策。', en: 'Dual systems, heuristics, biases, and judgment.', ja: '二重過程、ヒューリスティック、バイアス、判断。' }],
+        ['Marsha Linehan', '1943-', 'contextual', { zh: 'DBT：接纳与改变的辩证平衡。', en: 'DBT: dialectical balance of acceptance and change.', ja: 'DBT：受容と変化の弁証法的バランス。' }],
+        ['Steven C. Hayes', '1948-', 'contextual', { zh: 'ACT、心理灵活性和价值行动。', en: 'ACT, psychological flexibility, values-guided action.', ja: 'ACT、心理的柔軟性、価値に基づく行動。' }],
+        ['Carl Rogers', '1902-1987', 'humanistic', { zh: '来访者中心疗法与无条件积极关注。', en: 'Client-centered therapy and unconditional positive regard.', ja: '来談者中心療法と無条件の肯定的関心。' }],
+        ['Abraham Maslow', '1908-1970', 'humanistic', { zh: '需求层次与自我实现。', en: 'Hierarchy of needs and self-actualization.', ja: '欲求階層と自己実現。' }],
+        ['Viktor Frankl', '1905-1997', 'humanistic', { zh: '意义治疗：人在极端处境中仍可承担意义。', en: 'Logotherapy: meaning remains possible under extreme conditions.', ja: 'ロゴセラピー：極限状況でも意味を担える。' }],
+        ['Irvin Yalom', '1931-', 'humanistic', { zh: '存在主义心理治疗与团体治疗。', en: 'Existential psychotherapy and group therapy.', ja: '実存的心理療法と集団療法。' }],
+        ['Antonio Damasio', '1944-', 'neuro', { zh: '躯体标记假说：情绪参与理性。', en: 'Somatic marker hypothesis: emotion participates in reason.', ja: 'ソマティック・マーカー仮説：情動は理性に関与する。' }],
+        ['Joseph LeDoux', '1949-', 'neuro', { zh: '恐惧、威胁处理与情绪神经环路。', en: 'Fear, threat processing, and emotion circuits.', ja: '恐怖、脅威処理、情動回路。' }],
+        ['Eric Kandel', '1929-', 'neuro', { zh: '记忆、突触可塑性与精神医学基础科学。', en: 'Memory, synaptic plasticity, and basic science for psychiatry.', ja: '記憶、シナプス可塑性、精神医学の基礎科学。' }],
+        ['Robert Sapolsky', '1957-', 'neuro', { zh: '行为的生物学：基因、激素、脑、文化和历史。', en: 'Biology of behavior across genes, hormones, brain, culture, and history.', ja: '遺伝子、ホルモン、脳、文化、歴史を横断する行動生物学。' }],
+        ['Emil Kraepelin', '1856-1926', 'clinical', { zh: '现代精神病学分类传统。', en: 'Modern psychiatric classification tradition.', ja: '現代精神医学分類の伝統。' }],
+        ['Eugen Bleuler', '1857-1939', 'clinical', { zh: '精神分裂症概念；荣格早年所在布尔格赫尔茨利语境。', en: 'Schizophrenia concept; Jung’s early Burgholzli context.', ja: '統合失調症概念；ユング初期のブルクヘルツリ文脈。' }],
+        ['Thomas Insel', '1951-', 'rdoc', { zh: '推动以神经行为维度研究精神障碍。', en: 'Promoted neurobehavioral dimensional research on mental disorders.', ja: '精神障害の神経行動次元研究を推進。' }],
+        ['Gordon Allport', '1897-1967', 'social', { zh: '偏见、人格与社会影响。', en: 'Prejudice, personality, and social influence.', ja: '偏見、人格、社会的影響。' }],
+        ['Kurt Lewin', '1890-1947', 'social', { zh: '场论、群体动力、行动研究。', en: 'Field theory, group dynamics, action research.', ja: '場の理論、集団力学、アクションリサーチ。' }],
+        ['Henri Tajfel', '1919-1982', 'social', { zh: '社会认同和群体间关系。', en: 'Social identity and intergroup relations.', ja: '社会的アイデンティティと集団間関係。' }],
+        ['George Engel', '1913-1999', 'health', { zh: '生物-心理-社会模型。', en: 'Biopsychosocial model.', ja: '生物心理社会モデル。' }],
+        ['Jon Kabat-Zinn', '1944-', 'health', { zh: 'MBSR，把正念带入压力、疼痛和慢病照护。', en: 'MBSR: mindfulness for stress, pain, and chronic illness care.', ja: 'MBSR：ストレス、疼痛、慢性疾患ケアへのマインドフルネス。' }],
+        ['Bessel van der Kolk', '1943-', 'trauma', { zh: '创伤、身体记忆与恢复路径。', en: 'Trauma, body memory, and paths to recovery.', ja: 'トラウマ、身体記憶、回復経路。' }],
+        ['Judith Herman', '1942-', 'trauma', { zh: '创伤、恢复与社会语境。', en: 'Trauma, recovery, and social context.', ja: 'トラウマ、回復、社会的文脈。' }],
+        ['Martin Seligman', '1942-', 'positive', { zh: '习得性无助、积极心理学、PERMA。', en: 'Learned helplessness, positive psychology, PERMA.', ja: '学習性無力感、ポジティブ心理学、PERMA。' }],
+        ['Mihaly Csikszentmihalyi', '1934-2021', 'positive', { zh: '心流：高度投入与最优体验。', en: 'Flow: deep engagement and optimal experience.', ja: 'フロー：深い没入と最適経験。' }],
+        ['Murray Bowen', '1913-1990', 'systems', { zh: '家庭系统与分化。', en: 'Family systems and differentiation.', ja: '家族システムと分化。' }],
+        ['Salvador Minuchin', '1921-2017', 'systems', { zh: '结构式家庭治疗。', en: 'Structural family therapy.', ja: '構造的家族療法。' }],
+      ];
+
+      const books = [
+        ['Man and His Symbols', '人及其象征', '人間と象徴', 'jungian', 'Carl G. Jung et al.', { zh: '从梦、象征和原型进入荣格，图像多、门槛低。', en: 'A visual, low-barrier entry into dreams, symbols, and archetypes.', ja: '夢・象徴・元型への視覚的な入口。' }, 'prh-jung-symbols', 'overview', 'easy'],
+        ['Memories, Dreams, Reflections', '回忆·梦·思考', 'ユング自伝', 'jungian', 'C. G. Jung / Aniela Jaffe', { zh: '以自传式叙述理解荣格的经历、梦与思想形成。', en: 'An autobiographical route into Jung’s life, dreams, and intellectual formation.', ja: '自伝的叙述からユングの生涯と思想形成をたどる。' }, 'prh-jung-symbols', 'biography', 'easy'],
+        ['Jung: A Very Short Introduction', '荣格：牛津通识读本', 'ユング：一冊でわかる', 'jungian', 'Anthony Stevens', { zh: '比荣格原著更清楚地解释情结、原型、阴影与个体化。', en: 'A concise guide to complexes, archetypes, shadow, and individuation.', ja: 'コンプレックス、元型、影、個性化を簡潔に解説。' }, 'oup-jung', 'overview', 'easy'],
+        ['Jung: A Biography', '荣格传', 'ユング伝', 'jungian', 'Deirdre Bair', { zh: '把理论放回荣格的人生、时代与争议中理解。', en: 'Places Jung’s ideas within his life, historical setting, and controversies.', ja: '思想を生涯、時代、論争の中に位置づける伝記。' }, 'open-library', 'biography', 'medium'],
+
+        ['Freud: A Very Short Introduction', '弗洛伊德：牛津通识读本', 'フロイト：一冊でわかる', 'psychodynamic', 'Anthony Storr', { zh: '先认识弗洛伊德的生平、核心概念与当代遗产。', en: 'A first look at Freud’s life, core concepts, and legacy.', ja: 'フロイトの生涯、主要概念、遺産への入門。' }, 'oup-freud', 'overview', 'easy'],
+        ['The Examined Life', '被审视的人生', 'とらわれない生き方', 'psychodynamic', 'Stephen Grosz', { zh: '用短篇咨询故事展示无意识、重复与改变，没有术语负担。', en: 'Brief clinical stories about unconscious patterns, repetition, and change without jargon.', ja: '専門用語を抑えた臨床物語から無意識と変化を読む。' }, 'grosz-examined', 'practice', 'easy'],
+        ['The Interpretation of Dreams', '梦的解析', '夢判断', 'psychodynamic', 'Sigmund Freud', { zh: '经典原著；适合在读过导论后选读，不建议作为第一本。', en: 'A classic primary text, best sampled after an introduction rather than read first.', ja: '古典的原典。入門後の選読向き。' }, 'apa-therapy', 'theory', 'hard'],
+
+        ['Don’t Shoot the Dog', '别毙了那只狗', 'うまくやるための強化の原理', 'behavioral', 'Karen Pryor', { zh: '用日常训练案例讲清强化、塑造与行为改变。', en: 'Explains reinforcement, shaping, and behavior change through everyday training examples.', ja: '日常の訓練例で強化と行動形成を説明。' }, 'simon-pryor', 'practice', 'easy'],
+        ['About Behaviorism', '关于行为主义', '行動主義について', 'behavioral', 'B. F. Skinner', { zh: '由斯金纳直接澄清行为主义常见误解，理论性较强。', en: 'Skinner’s own clarification of common misunderstandings about behaviorism.', ja: 'スキナー自身が行動主義への誤解を解く。' }, 'open-library', 'theory', 'medium'],
+        ['The Power of Habit', '习惯的力量', '習慣の力', 'behavioral', 'Charles Duhigg', { zh: '用通俗故事理解线索、惯例和奖赏如何维持习惯。', en: 'Popular stories about cues, routines, rewards, and habit change.', ja: 'きっかけ、ルーティン、報酬から習慣を理解する。' }, 'open-library', 'practice', 'easy'],
+
+        ['Thinking, Fast and Slow', '思考，快与慢', 'ファスト＆スロー', 'cognitive', 'Daniel Kahneman', { zh: '认识启发式、偏差、直觉与审慎思考。', en: 'A public introduction to heuristics, biases, intuition, and deliberation.', ja: 'ヒューリスティック、バイアス、直観と熟慮への入門。' }, 'prh-kahneman', 'overview', 'medium'],
+        ['Feeling Good', '伯恩斯新情绪疗法', 'いやな気分よ、さようなら', 'cognitive', 'David D. Burns', { zh: '把自动思维、认知重评和练习带入日常。', en: 'Brings automatic thoughts, cognitive reappraisal, and exercises into daily life.', ja: '自動思考と認知的再評価を日常の練習へ。' }, 'harper-feeling-good', 'practice', 'easy'],
+        ['The Seven Sins of Memory', '记忆的七宗罪', 'なぜ「あれ」が思い出せなくなるのか', 'cognitive', 'Daniel L. Schacter', { zh: '用记忆的七类偏差理解遗忘、错记与暗示。', en: 'Explains forgetting, distortion, and suggestibility through seven memory errors.', ja: '忘却、歪み、暗示を記憶の七つの誤りから理解。' }, 'open-library', 'overview', 'easy'],
+
+        ['The Happiness Trap', '幸福的陷阱', '幸福になりたいなら幸福になろうとしてはいけない', 'contextual', 'Russ Harris', { zh: 'ACT 的大众入口：接纳不适、澄清价值并采取行动。', en: 'A public ACT primer on accepting discomfort, clarifying values, and taking action.', ja: '不快感の受容、価値の明確化、行動を学ぶACT入門。' }, 'open-library', 'practice', 'easy'],
+        ['Building a Life Worth Living', '此生值得', '生きるに値する人生', 'contextual', 'Marsha Linehan', { zh: 'DBT 创始人的自传，也是接纳与改变哲学的入口。', en: 'The DBT founder’s memoir and an entry into its acceptance-and-change philosophy.', ja: 'DBT創始者の回想と、受容と変化の哲学。' }, 'abct-dbt', 'biography', 'easy'],
+        ['Wherever You Go, There You Are', '正念：此刻是一枝花', 'マインドフルネスを始めたいあなたへ', 'contextual', 'Jon Kabat-Zinn', { zh: '短章形式的正念入门，先体验再理解理论。', en: 'Short chapters that invite readers to experience mindfulness before theorizing it.', ja: '短い章で体験から入るマインドフルネス入門。' }, 'kabat-zinn', 'practice', 'easy'],
+
+        ['Man’s Search for Meaning', '活出生命的意义', '夜と霧', 'humanistic', 'Viktor Frankl', { zh: '通过生命经历进入意义治疗与人的选择。', en: 'Life narrative as an entry into logotherapy, meaning, and human choice.', ja: '体験からロゴセラピー、意味、選択へ入る。' }, 'frankl-books', 'biography', 'easy'],
+        ['On Becoming a Person', '个人形成论', 'ロジャーズが語る自己実現の道', 'humanistic', 'Carl Rogers', { zh: '理解共情、真诚与无条件积极关注如何促成改变。', en: 'Introduces empathy, congruence, and unconditional positive regard as conditions for change.', ja: '共感、自己一致、無条件の肯定的関心を学ぶ。' }, 'apa-humanistic', 'theory', 'medium'],
+        ['Love’s Executioner', '爱情刽子手', '恋の死刑執行人', 'humanistic', 'Irvin D. Yalom', { zh: '以治疗故事进入死亡、自由、孤独与意义等存在议题。', en: 'Therapy stories opening onto death, freedom, isolation, and meaning.', ja: '治療物語から死、自由、孤独、意味へ。' }, 'open-library', 'practice', 'easy'],
+
+        ['Descartes’ Error', '笛卡尔的错误', 'デカルトの誤り', 'neuro', 'Antonio Damasio', { zh: '理解情绪如何参与理性判断与决策。', en: 'Explains how emotion participates in rational judgment and decision-making.', ja: '情動が合理的判断と意思決定に関わる仕組み。' }, 'damasio', 'theory', 'medium'],
+        ['Behave', '行为', '行動', 'neuro', 'Robert Sapolsky', { zh: '从前一秒到数千年前，多尺度解释行为如何发生。', en: 'Explains behavior across timescales from the prior second to deep history.', ja: '直前の一秒から遠い歴史まで多層的に行動を説明。' }, 'prh-sapolsky', 'overview', 'hard'],
+        ['In Search of Memory', '追寻记忆的痕迹', '記憶のしくみ', 'neuro', 'Eric R. Kandel', { zh: '科学家自传、思想史与记忆神经科学的结合。', en: 'A combination of scientific memoir, intellectual history, and memory neuroscience.', ja: '科学者の回想、思想史、記憶神経科学を結ぶ。' }, 'prh-kandel', 'biography', 'medium'],
+
+        ['An Unquiet Mind', '躁郁之心', '躁うつ病を生きる', 'clinical', 'Kay Redfield Jamison', { zh: '临床心理学家以亲历写躁郁症、诊断与治疗。', en: 'A clinical psychologist’s memoir of bipolar illness, diagnosis, and treatment.', ja: '臨床心理学者が双極症、診断、治療を語る回想。' }, 'open-library', 'biography', 'easy'],
+        ['The Noonday Demon', '正午之魔', '真昼の悪魔', 'clinical', 'Andrew Solomon', { zh: '把抑郁的个人经历、临床知识与社会文化放在一起。', en: 'Combines lived experience of depression with clinical and sociocultural inquiry.', ja: 'うつの体験、臨床知、社会文化を統合する。' }, 'open-library', 'overview', 'medium'],
+        ['The Center Cannot Hold', '我穿越疯狂的旅程', '統合失調症と生きる', 'clinical', 'Elyn R. Saks', { zh: '以自传理解严重精神障碍背后的完整人格与生活。', en: 'A memoir that preserves the full person behind severe mental illness.', ja: '重い精神障害の背後にいる一人の人間を描く回想。' }, 'open-library', 'biography', 'easy'],
+
+        ['The Book of Woe', 'DSM-5 的哀歌', '精神診断の「聖書」を問う', 'rdoc', 'Gary Greenberg', { zh: '从记者视角理解 DSM 分类的形成、争议与局限。', en: 'A journalistic account of how DSM categories are made, debated, and limited.', ja: 'DSM分類の形成、論争、限界を記者の視点から読む。' }, 'open-library', 'overview', 'medium'],
+        ['Mind Fixers', '心灵修理者', '精神医学と生物学の探究', 'rdoc', 'Anne Harrington', { zh: '梳理精神医学寻找生物学解释的历史，帮助理解 RDoC 为何出现。', en: 'A history of psychiatry’s search for biological explanations and the context behind RDoC.', ja: '精神医学の生物学的説明探求の歴史からRDoCの背景を知る。' }, 'open-library', 'theory', 'medium'],
+
+        ['The Scientist in the Crib', '摇篮里的科学家', '赤ちゃんは小さな科学者', 'developmental', 'Alison Gopnik, Andrew Meltzoff, Patricia Kuhl', { zh: '用婴幼儿研究说明学习、语言与心智如何发展。', en: 'Uses infant research to explain the development of learning, language, and mind.', ja: '乳幼児研究から学習、言語、心の発達を説明。' }, 'ilabs-scientist', 'overview', 'easy'],
+        ['The Gardener and the Carpenter', '园丁与木匠', '子どもは「育てる」のではなく「育つ」', 'developmental', 'Alison Gopnik', { zh: '把发展科学转化为对养育控制欲的反思。', en: 'Turns developmental science into a reflection on control in parenting.', ja: '発達科学から子育てのコントロールを問い直す。' }, 'open-library', 'practice', 'easy'],
+        ['Attached', '依恋', '異性の心を上手に透視する方法', 'developmental', 'Amir Levine / Rachel Heller', { zh: '成人依恋的流行入门；模型有帮助，但不应把人永久贴标签。', en: 'A popular adult-attachment primer, useful when treated as a lens rather than a fixed label.', ja: '成人愛着の一般向け入門。固定的なラベルとしては扱わない。' }, 'open-library', 'practice', 'easy'],
+
+        ['The Social Animal', '社会性动物', '社会的動物', 'social', 'Elliot Aronson', { zh: '从从众、偏见、吸引到说服，系统进入社会心理学。', en: 'A broad entry into conformity, prejudice, attraction, and persuasion.', ja: '同調、偏見、魅力、説得から社会心理学へ。' }, 'open-library', 'overview', 'medium'],
+        ['Influence', '影响力', '影響力の武器', 'social', 'Robert Cialdini', { zh: '用日常案例认识说服与社会影响的关键机制。', en: 'Everyday cases introduce key mechanisms of persuasion and social influence.', ja: '日常例から説得と社会的影響の仕組みを学ぶ。' }, 'open-library', 'practice', 'easy'],
+        ['The Righteous Mind', '正义之心', '社会はなぜ左と右にわかれるのか', 'social', 'Jonathan Haidt', { zh: '理解道德直觉、群体认同与政治分歧。', en: 'Explores moral intuition, group identity, and political division.', ja: '道徳直観、集団同一性、政治的分断を理解する。' }, 'hachette-happiness', 'overview', 'medium'],
+
+        ['Full Catastrophe Living', '多舛的生命', 'マインドフルネスストレス低減法', 'health', 'Jon Kabat-Zinn', { zh: 'MBSR 的核心大众读物，连接压力、疼痛和慢病照护。', en: 'The main public MBSR text connecting stress, pain, and chronic-illness care.', ja: 'ストレス、痛み、慢性疾患ケアを結ぶMBSRの主要書。' }, 'kabat-zinn', 'practice', 'medium'],
+        ['Why Zebras Don’t Get Ulcers', '斑马为什么不得胃溃疡', 'なぜシマウマは胃潰瘍にならないか', 'health', 'Robert Sapolsky', { zh: '以生理学和行为科学解释慢性压力。', en: 'An accessible physiological and behavioral account of chronic stress.', ja: '慢性ストレスを生理学と行動科学から説明。' }, 'prh-sapolsky', 'overview', 'easy'],
+        ['The Stress Prescription', '压力处方', 'ストレスへの処方箋', 'health', 'Elissa Epel', { zh: '把压力研究转为可执行的日常练习。', en: 'Translates stress research into practical daily exercises.', ja: 'ストレス研究を実行しやすい日常練習へ。' }, 'open-library', 'practice', 'easy'],
+
+        ['The Body Keeps the Score', '身体从未忘记', '身体はトラウマを記録する', 'trauma', 'Bessel van der Kolk', { zh: '创伤、身体与治疗方法的综合读物；具体疗法仍需结合指南判断。', en: 'A broad trauma-body synthesis; treatment claims should still be read alongside guidelines.', ja: 'トラウマと身体の総合書。治療法はガイドラインと併読したい。' }, 'prh-body-score', 'overview', 'medium'],
+        ['Trauma and Recovery', '创伤与复原', '心的外傷と回復', 'trauma', 'Judith Herman', { zh: '把安全、回忆与重建连接到社会权力和关系语境。', en: 'Connects safety, remembrance, and reconnection with social power and relationships.', ja: '安全、想起すこと、再結合を社会的権力と関係性へつなぐ。' }, 'nice-ptsd', 'theory', 'medium'],
+        ['What My Bones Know', '我的骨头知道', '私の骨が知っていること', 'trauma', 'Stephanie Foo', { zh: '复杂创伤的个人回忆与求助历程，适合从经验进入。', en: 'A memoir of complex trauma and help-seeking, useful as an experiential doorway.', ja: '複雑性トラウマと助けを求める過程を描く回想。' }, 'open-library', 'biography', 'easy'],
+        ['The Boy Who Was Raised as a Dog', '被当作狗养大的男孩', '犬として育てられた少年', 'trauma', 'Bruce D. Perry / Maia Szalavitz', { zh: '通过儿童个案理解发展、依恋与创伤反应。', en: 'Child cases connect development, attachment, and trauma responses.', ja: '子どもの事例から発達、愛着、トラウマ反応を理解。' }, 'open-library', 'practice', 'easy'],
+
+        ['Flow', '心流', 'フロー体験 喜びの現象学', 'positive', 'Mihaly Csikszentmihalyi', { zh: '理解能力与挑战匹配时的高度投入体验。', en: 'Explains deep engagement when challenge and skill are well matched.', ja: '挑戦と技能が釣り合うときの深い没入を説明。' }, 'harper-flow', 'overview', 'easy'],
+        ['Flourish', '持续的幸福', 'ポジティブ心理学の挑戦', 'positive', 'Martin Seligman', { zh: '从快乐扩展到积极情绪、投入、关系、意义与成就。', en: 'Expands happiness into emotion, engagement, relationships, meaning, and accomplishment.', ja: '幸福を感情、没入、関係、意味、達成へ広げる。' }, 'simon-flourish', 'theory', 'easy'],
+        ['The How of Happiness', '幸福的方法', '幸せがずっと続く12の行動習慣', 'positive', 'Sonja Lyubomirsky', { zh: '把幸福研究转为可尝试、可复盘的行为策略。', en: 'Turns well-being research into testable, reviewable behavioral strategies.', ja: '幸福研究を試して振り返れる行動方略へ。' }, 'open-library', 'practice', 'easy'],
+
+        ['The Family Crucible', '家庭会伤人', '家族という坩堝', 'systems', 'Augustus Napier / Carl Whitaker', { zh: '用完整治疗故事展示家庭如何维持问题，又如何一起改变。', en: 'A full therapy narrative showing how families maintain problems and change together.', ja: '家族が問題を維持し、共に変化する過程を治療物語で描く。' }, 'open-library', 'overview', 'easy'],
+        ['The Dance of Anger', '愤怒之舞', '怒りのダンス', 'systems', 'Harriet Lerner', { zh: '从关系模式而非个人缺陷理解愤怒与边界。', en: 'Frames anger and boundaries through relationship patterns rather than personal defects.', ja: '怒りと境界を個人の欠陥ではなく関係パターンから捉える。' }, 'open-library', 'practice', 'easy'],
+        ['You Can Go Home Again', '你可以再次回家', '家族の物語をたどり直す', 'systems', 'Monica McGoldrick', { zh: '借名人家族故事理解代际模式、迁移、失落与身份。', en: 'Uses family stories to explore intergenerational patterns, migration, loss, and identity.', ja: '家族物語から世代間パターン、移住、喪失、アイデンティティを読む。' }, 'open-library', 'theory', 'medium'],
+      ];
+
+      const domainGroups = [
+        {
+          id: 'traditions',
+          color: '#007f7a',
+          domains: ['jungian', 'psychodynamic', 'behavioral', 'cognitive', 'contextual', 'humanistic'],
+          title: { zh: '一 · 理论与治疗传统', en: 'I · Theoretical traditions', ja: 'I · 理論・治療の伝統' },
+          note: { zh: '用不同语言解释经验与改变', en: 'Different languages for experience and change', ja: '経験と変化を説明する異なる言語' },
+        },
+        {
+          id: 'sciences',
+          color: '#496ea8',
+          domains: ['neuro', 'developmental', 'social'],
+          title: { zh: '二 · 基础心理科学', en: 'II · Basic psychological sciences', ja: 'II · 基礎心理科学' },
+          note: { zh: '脑、毕生发展与社会情境的可检验研究', en: 'Testable research on brain, lifespan, and social context', ja: '脳、生涯発達、社会文脈の検証可能な研究' },
+        },
+        {
+          id: 'clinical',
+          color: '#bb5966',
+          domains: ['clinical', 'rdoc', 'trauma'],
+          title: { zh: '三 · 临床组织与问题框架', en: 'III · Clinical organizing frameworks', ja: 'III · 臨床的整理と問題枠組み' },
+          note: { zh: '分类、维度研究与跨诊断议题', en: 'Categories, dimensions, and transdiagnostic problems', ja: '分類、次元研究、診断横断的課題' },
+        },
+        {
+          id: 'applied',
+          color: '#d6a441',
+          domains: ['health', 'positive', 'systems'],
+          title: { zh: '四 · 应用、福祉与关系情境', en: 'IV · Application, well-being, and context', ja: 'IV · 応用・ウェルビーイング・関係文脈' },
+          note: { zh: '把个人放回身体、家庭、组织与生活质量中', en: 'The person within body, family, organization, and quality of life', ja: '身体、家族、組織、生活の質の中の人間' },
+        },
+      ];
+
+      const groupByDomain = Object.fromEntries(
+        domainGroups.flatMap((group) => group.domains.map((id) => [id, group])),
+      );
+      domains.forEach((domain) => {
+        domain.people = people.filter((person) => person[2] === domain.id).map((person) => person[0]);
+        domain.books = books.filter((book) => book[3] === domain.id).map((book) => book[0]);
+        domain.group = groupByDomain[domain.id];
+      });
+
+      const state = { lang: 'zh', active: 'jungian', mode: 'frameworks', query: '', bookType: 'all' };
+      const byId = Object.fromEntries(domains.map((d) => [d.id, d]));
+      const sourceById = Object.fromEntries(sources.map((s) => [s[0], s]));
+
+      function t(value) {
+        if (typeof value === 'string') return value;
+        return value[state.lang] || value.zh || value.en || '';
+      }
+
+      function updateStaticText() {
+        document.documentElement.lang = state.lang;
+        Object.entries(i18n[state.lang]).forEach(([key, value]) => {
+          const node = document.querySelector(`[data-i18n="${key}"]`);
+          if (node) node.textContent = value;
+        });
+        document.getElementById('mapTitle').textContent = i18n[state.lang].mapTitle;
+        document.getElementById('mapSubtitle').textContent = i18n[state.lang].mapSubtitle;
+        document.getElementById('search').placeholder =
+          state.lang === 'zh' ? '搜索框架、人物、著作、观点' : state.lang === 'en' ? 'Search frameworks, people, books, ideas' : '枠組み・人物・書籍・論点を検索';
+      }
+
+      function matchesText(domain) {
+        if (!state.query) return true;
+        const hay = [
+          t(domain.title),
+          t(domain.tag),
+          t(domain.question),
+          t(domain.relation),
+          ...domain.people,
+          ...domain.books,
+          ...domain.ideas.zh,
+          ...domain.ideas.en,
+          ...domain.ideas.ja,
+        ].join(' ').toLowerCase();
+        return hay.includes(state.query.toLowerCase());
+      }
+
+      function relatedIds() {
+        if (state.mode === 'frameworks') return new Set(domains.map((d) => d.id));
+        if (state.mode === 'jung') return new Set(['jungian', 'psychodynamic', 'humanistic', 'developmental', 'social', 'positive']);
+        return new Set(['clinical', 'rdoc', 'neuro', 'contextual', 'health', 'trauma', 'cognitive', 'behavioral']);
+      }
+
+      function renderNav() {
+        const root = document.getElementById('lensList');
+        root.innerHTML = '';
+        domainGroups.forEach((group) => {
+          const block = document.createElement('div');
+          block.className = 'group-block';
+          const visibleDomains = group.domains.map((id) => byId[id]).filter(matchesText);
+          block.classList.toggle('hidden', visibleDomains.length === 0);
+          block.innerHTML = `<div class="group-label"><span>${t(group.title)}</span><span>${group.domains.length}</span></div>`;
+          group.domains.forEach((id) => {
+            const domain = byId[id];
+            const button = document.createElement('button');
+            button.className = `lens ${domain.id === state.active ? 'active' : ''} ${matchesText(domain) ? '' : 'hidden'}`;
+            button.style.setProperty('--color', domain.color);
+            button.innerHTML = `
+              <span class="dot"></span>
+              <strong>${t(domain.title)}</strong>
+              <small>${domain.people.length}</small>
+            `;
+            button.addEventListener('click', () => {
+              state.active = domain.id;
+              renderAll();
+            });
+            block.appendChild(button);
+          });
+          root.appendChild(block);
+        });
+      }
+
+      function renderTaxonomy() {
+        document.getElementById('taxonomySummary').innerHTML = domainGroups
+          .map(
+            (group) => `
+              <div class="taxonomy-item" style="--group-color:${group.color}">
+                <strong>${t(group.title)} · ${group.domains.length}</strong>
+                <span>${t(group.note)}</span>
+              </div>
+            `,
+          )
+          .join('');
+      }
+
+      function renderMap() {
+        const stage = document.getElementById('mapStage');
+        [...stage.querySelectorAll('.node')].forEach((n) => n.remove());
+        const svg = document.getElementById('linkLayer');
+        svg.innerHTML = '';
+        const visible = relatedIds();
+        links.forEach(([a, b]) => {
+          const da = byId[a];
+          const db = byId[b];
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', da.x);
+          line.setAttribute('y1', da.y);
+          line.setAttribute('x2', db.x);
+          line.setAttribute('y2', db.y);
+          if (a === state.active || b === state.active) line.classList.add('active');
+          if (!visible.has(a) || !visible.has(b)) line.style.opacity = '0.18';
+          svg.appendChild(line);
+        });
+        domains.forEach((domain) => {
+          const node = document.createElement('button');
+          node.className = `node ${domain.id === state.active ? 'active' : ''} ${visible.has(domain.id) && matchesText(domain) ? '' : 'dimmed'}`;
+          node.style.left = `${domain.x / 10}%`;
+          node.style.top = `${domain.y / 7.6}%`;
+          node.style.setProperty('--color', domain.color);
+          node.style.setProperty('--size', `${domain.size}px`);
+          node.innerHTML = `<strong>${t(domain.title)}</strong><span>${t(domain.tag)}</span>`;
+          node.addEventListener('click', () => {
+            state.active = domain.id;
+            renderAll();
+          });
+          stage.appendChild(node);
+        });
+      }
+
+      function renderDetail() {
+        const domain = byId[state.active];
+        const labels = i18n[state.lang];
+        const sourcesHtml = domain.sources
+          .map((id) => sourceById[id])
+          .filter(Boolean)
+          .map((s) => `<a class="chip" href="${s[2]}" target="_blank" rel="noreferrer">${s[1]}</a>`)
+          .join('');
+        document.getElementById('detail').innerHTML = `
+          <span class="badge" style="background:${domain.color}">${t(domain.tag)}</span>
+          <h2 class="detail-title">${t(domain.title)}</h2>
+          <p class="detail-sub">${t(domain.question)}</p>
+          <div class="fact-grid">
+            <div class="fact"><small>${labels.people}</small><strong>${domain.people.length}</strong></div>
+            <div class="fact"><small>${labels.works}</small><strong>${domain.books.length}</strong></div>
+          </div>
+          <h2>${labels.layer}</h2>
+          <p class="detail-sub">${t(domain.group.title)} · ${t(domain.group.note)}</p>
+          <h2>${labels.keyIdeas}</h2>
+          <div class="chips">${domain.ideas[state.lang].map((idea) => `<span class="chip">${idea}</span>`).join('')}</div>
+          <h2 style="margin-top:18px">${labels.people}</h2>
+          <div class="chips">${domain.people.map((p) => `<span class="chip">${p}</span>`).join('')}</div>
+          <h2 style="margin-top:18px">${labels.works}</h2>
+          <div class="chips">${domain.books.map((p) => `<span class="chip">${p}</span>`).join('')}</div>
+          <h2 style="margin-top:18px">${labels.relation}</h2>
+          <p class="detail-sub">${t(domain.relation)}</p>
+          <h2 style="margin-top:18px">${labels.evidence}</h2>
+          <div class="chips">${sourcesHtml}</div>
+        `;
+      }
+
+      function renderPeople() {
+        const root = document.getElementById('peopleList');
+        const q = state.query.toLowerCase();
+        root.innerHTML = people
+          .filter((p) => !q || [p[0], p[1], byId[p[2]]?.title.zh, byId[p[2]]?.title.en, t(p[3])].join(' ').toLowerCase().includes(q))
+          .map((p) => {
+            const domain = byId[p[2]];
+            return `
+              <article class="person-card">
+                <span class="dot" style="--color:${domain.color}"></span>
+                <strong>${p[0]}</strong>
+                <span>${p[1]} · ${t(domain.title)}</span>
+                <p>${t(p[3])}</p>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function renderBooks() {
+        const root = document.getElementById('bookGrid');
+        const q = state.query.toLowerCase();
+        const typeLabels = {
+          zh: { overview: '快速认识', biography: '人物／自传', theory: '理论入口', practice: '生活应用', easy: '轻松读', medium: '稍进阶', hard: '原著选读' },
+          en: { overview: 'Quick overview', biography: 'Life / memoir', theory: 'Theory primer', practice: 'Life application', easy: 'Easy', medium: 'Intermediate', hard: 'Primary text' },
+          ja: { overview: '短い概説', biography: '人物／回想', theory: '理論入門', practice: '生活への応用', easy: '読みやすい', medium: 'やや発展', hard: '原典選読' },
+        }[state.lang];
+        root.innerHTML = books
+          .filter((book) => state.bookType === 'all' || book[7] === state.bookType)
+          .filter((book) => !q || book.slice(0, 6).join(' ').toLowerCase().includes(q) || t(book[5]).toLowerCase().includes(q))
+          .map((book) => {
+            const domain = byId[book[3]];
+            const src = sourceById[book[6]];
+            const href = book[6] === 'open-library'
+              ? `https://openlibrary.org/search?q=${encodeURIComponent(`${book[0]} ${book[4]}`)}`
+              : src[2];
+            return `
+              <article class="book-card">
+                <span class="badge" style="background:${domain.color}">${t(domain.title)}</span>
+                <strong>${book[0]}</strong>
+                <div class="book-route">
+                  <span class="route-tag">${typeLabels[book[7]]}</span>
+                  <span class="route-tag">${typeLabels[book[8]]}</span>
+                </div>
+                <div class="book-meta">
+                  <span>中文：${book[1]}</span>
+                  <span>日本語：${book[2]}</span>
+                  <span>${book[4]}</span>
+                </div>
+                <p>${t(book[5])}</p>
+                <p style="margin-top:10px"><a href="${href}" target="_blank" rel="noreferrer">${src[1]}</a></p>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function renderSources() {
+        const root = document.getElementById('sourceGrid');
+        root.innerHTML = sources
+          .map(
+            (source) => `
+              <article class="source-card">
+                <a href="${source[2]}" target="_blank" rel="noreferrer">${source[1]}</a>
+                <p>${source[3]}</p>
+              </article>
+            `,
+          )
+          .join('');
+      }
+
+      function renderAll() {
+        updateStaticText();
+        renderNav();
+        renderTaxonomy();
+        renderMap();
+        renderDetail();
+        renderPeople();
+        renderBooks();
+        renderSources();
+      }
+
+      document.querySelectorAll('[data-lang]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.lang = button.dataset.lang;
+          document.querySelectorAll('[data-lang]').forEach((b) => b.classList.toggle('active', b === button));
+          renderAll();
+        });
+      });
+
+      document.querySelectorAll('[data-mode]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.mode = button.dataset.mode;
+          document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('active', b === button));
+          renderMap();
+        });
+      });
+
+      document.querySelectorAll('[data-book-type]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.bookType = button.dataset.bookType;
+          document.querySelectorAll('[data-book-type]').forEach((b) => b.classList.toggle('active', b === button));
+          renderBooks();
+        });
+      });
+
+      document.getElementById('search').addEventListener('input', (event) => {
+        state.query = event.target.value.trim();
+        renderAll();
+      });
+
+      renderAll();
+    </script>
+
+    <div class="pm-app" data-screen-label="Psychologymap">
+      <header class="pm-header">
+        <div class="pm-brand"><h1>Psychologymap</h1><span data-pm-i18n="brandNote">文献影响 × 结构广度 · 1880—现在</span></div>
+        <label class="pm-search"><span aria-hidden="true">⌕</span><input id="pmSearch" list="pmSuggestions" type="search" placeholder="搜索体系、人物、理论贡献或书籍" /><datalist id="pmSuggestions"></datalist></label>
+        <div class="pm-header-actions">
+          <button class="pm-header-button active" data-pm-lens="person" data-pm-i18n="personLens">人物优先</button>
+          <button class="pm-header-button" data-pm-lens="theory" data-pm-i18n="theoryLens">理论优先</button>
+          <div class="pm-language">
+            <button id="pmLanguageTrigger" class="pm-language-trigger" type="button" aria-label="切换语言" aria-haspopup="menu" aria-expanded="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3.5 12h17M12 3c2.4 2.5 3.6 5.5 3.6 9S14.4 18.5 12 21c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z"></path></svg>
+            </button>
+            <div id="pmLanguageMenu" class="pm-language-menu" role="menu" hidden>
+              <button class="pm-language-option active" type="button" role="menuitemradio" aria-checked="true" data-pm-lang="zh">简体中文</button>
+              <button class="pm-language-option" type="button" role="menuitemradio" aria-checked="false" data-pm-lang="en">English</button>
+              <button class="pm-language-option" type="button" role="menuitemradio" aria-checked="false" data-pm-lang="ja">日本語</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="pm-main">
+        <section id="pmViewport" class="pm-viewport" aria-label="可拖拽缩放的心理学思想 Carta">
+          <nav class="pm-nav" aria-label="Psychologymap 导航">
+            <div class="pm-nav-mark">Ψ</div>
+            <button class="pm-nav-button active" data-pm-nav="home" title="思想全景" aria-label="思想全景">◈</button>
+            <button class="pm-nav-button" data-pm-nav="timeline" title="时间谱系" aria-label="时间谱系">≋</button>
+            <button class="pm-nav-button" data-pm-nav="theories" title="理论层级" aria-label="理论层级">▤</button>
+            <button class="pm-nav-button" data-pm-nav="books" title="阅读索引" aria-label="阅读索引">▥</button>
+            <button class="pm-nav-button" data-pm-nav="people" title="人物索引" aria-label="人物索引">◎</button>
+            <div class="pm-nav-spacer"></div>
+            <button class="pm-nav-button" data-pm-nav="info" title="地图说明" aria-label="地图说明">i</button>
+          </nav>
+          <div class="pm-overview-copy" aria-hidden="true">
+            <p>Psychologymap · A carta of human thought</p>
+            <h2 id="pmOverviewTitle">心理学思想，沿时间形成天际线</h2>
+            <span id="pmOverviewNote">横向按体系登场顺序排列；高度表示文献影响指数，宽度表示结构广度，颜色表示谱系归属。</span>
+          </div>
+          <div id="pmOverviewControls" class="pm-overview-controls" role="group" aria-label="首页视图">
+            <button class="pm-overview-mode active" type="button" data-overview-mode="blocks" aria-pressed="true" data-pm-i18n="timelineTab">时间线索</button>
+            <button class="pm-overview-mode" type="button" data-overview-mode="buckets" aria-pressed="false" data-pm-i18n="genealogyTab">谱系线索</button>
+            <button class="pm-overview-mode" type="button" data-overview-mode="people" aria-pressed="false" data-pm-i18n="peopleTab">人物顺序</button>
+          </div>
+          <div class="pm-toolbar"><button id="pmZoomIn" class="pm-tool" title="放大">＋</button><button id="pmZoomOut" class="pm-tool" title="缩小">−</button><button id="pmFit" class="pm-tool" title="显示全图">⌗</button><button id="pmFocus" class="pm-tool" title="聚焦选中节点">◎</button></div>
+          <div class="pm-scale"><strong id="pmScaleTitle">主流派层</strong><span id="pmScaleNote">体系、年代与跨体系关系</span></div>
+          <div id="pmLockState" class="pm-lock-state" role="status" aria-live="polite">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            <div class="pm-lock-copy"><strong id="pmLockTitle">关系已锁定</strong><span>平移或缩放后仍会保留</span></div>
+            <button id="pmUnlock" class="pm-unlock" type="button">解除锁定</button>
+          </div>
+          <div class="pm-legend"><span><i style="--legend-color:#1a887e"></i><b data-pm-i18n="primaryLink">主要影响</b></span><span><i style="--legend-color:#5875a4"></i><b data-pm-i18n="secondaryLink">次要影响／桥接</b></span><span><i style="--legend-color:#b45462"></i><b data-pm-i18n="debateLink">反动／争论</b></span></div>
+          <svg id="pmMap" class="pm-map zoom-domain" role="img" aria-label="纵轴为年代、横轴为心理学大类的思想谱系图">
+            <defs>
+              <marker id="pmArrowPrimary" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1a887e"></path></marker>
+            </defs>
+            <g id="pmTransform"><g id="pmBackground"></g><g id="pmSuperLayer"></g><g id="pmEdges"></g><g id="pmStems"></g><g id="pmDomains"></g><g id="pmUnits"></g><g id="pmBooks"></g></g>
+          </svg>
+        </section>
+        <aside id="pmPanel" class="pm-panel" aria-live="polite"></aside>
+      </main>
+    </div>
+
+    <script>
+      const pmRoleLabels={overview:'全景导论',biography:'传记／自传',theory:'理论／原典',practice:'生活实践',history:'思想史',extension:'体系延展',translation:'跨文化转译',adjacent:'邻接读物',critique:'批判性伴读'};
+      const pmDepthLabels={easy:'入门',medium:'进阶',hard:'深读'};
+      const pmCanvas={width:3200,height:2500};
+      const pmLaneX={traditions:520,sciences:1260,clinical:2020,applied:2760};
+      const pmDomainYears={psychodynamic:1895,jungian:1912,behavioral:1913,clinical:1900,developmental:1925,humanistic:1945,social:1940,systems:1950,cognitive:1956,neuro:1965,health:1977,trauma:1980,contextual:1990,positive:1998,rdoc:2010};
+      const pmState={lens:'person',selected:'domain-jungian',locked:null,overview:'blocks',peopleOrder:'importance',scale:.4,tx:0,ty:0,dragging:false,px:0,py:0};
+      try{const savedLanguage=localStorage.getItem('psychologymap-language');if(['zh','en','ja'].includes(savedLanguage))state.lang=savedLanguage}catch(error){}
+      const pmStreams=[
+        ['analytical','jungian',1912,'分析心理学',['Carl Gustav Jung'],5,3,'历史传统','集体无意识、原型、情结与个体化构成荣格的核心理论。'],
+        ['post-jung','jungian',1945,'后荣格发展学派',['Erich Neumann','Michael Fordham'],3,2,'理论延展','把分析心理学与意识发展、儿童发展和客体关系连接起来。'],
+        ['archetypal','jungian',1968,'原型心理学',['James Hillman','Marie-Louise von Franz'],3,2,'解释传统','强调图像、神话、童话和文化想象，但经验检验有限。'],
+        ['east-asian-jung','jungian',1975,'东亚荣格心理学',['Hayao Kawai','Dora Kalff'],3,3,'跨文化转译','将梦、沙盘、佛教与东亚文化放进分析心理学实践。'],
+        ['synchronicity','jungian',1952,'共时性',['Carl Gustav Jung','Wolfgang Pauli'],2,1,'推测性理论','重要的思想史议题；缺少可重复验证，应与概率、认知偏差和科学批判伴读。'],
+        ['classical-analysis','psychodynamic',1895,'经典精神分析',['Sigmund Freud'],5,3,'历史传统','无意识冲突、驱力、防御、梦和移情奠定现代谈话治疗的重要语言。'],
+        ['ego-psychology','psychodynamic',1936,'自我心理学',['Anna Freud','Heinz Hartmann'],3,2,'临床传统','关注自我功能、防御机制和现实适应。'],
+        ['object-relations','psychodynamic',1935,'客体关系',['Melanie Klein','Donald Winnicott'],4,4,'临床传统','将早期照护关系、内在客体、抱持环境和真伪自体放在中心。'],
+        ['attachment','psychodynamic',1958,'依恋理论',['John Bowlby','Mary Ainsworth'],5,5,'强研究基础','连接发展、关系、压力调节和临床风险，应用范围极广。'],
+        ['relational-analysis','psychodynamic',1983,'关系精神分析',['Stephen Mitchell','Jessica Benjamin'],3,3,'临床传统','把治疗中的主体间关系视为心理改变的核心场域。'],
+        ['classical-conditioning','behavioral',1903,'经典条件作用',['Ivan Pavlov','John Watson'],5,5,'强研究基础','解释刺激关联、恐惧学习和暴露治疗的基础机制。'],
+        ['operant','behavioral',1938,'操作性条件作用',['B. F. Skinner'],5,5,'强研究基础','强化、惩罚、消退和塑造广泛用于教育、组织和行为干预。'],
+        ['social-learning','behavioral',1961,'社会学习与自我效能',['Albert Bandura'],5,5,'强研究基础','观察学习、榜样、互惠决定和自我效能连接行为与认知。'],
+        ['behavior-analysis','behavioral',1968,'应用行为分析',['B. F. Skinner','Ivar Lovaas'],4,5,'成熟应用','以功能分析和可测量结果改变行为，同时需重视伦理与个体尊严。'],
+        ['information-processing','cognitive',1956,'信息加工与认知革命',['George Miller','Ulric Neisser'],5,5,'强研究基础','将注意、记忆、语言和问题解决转化为可实验研究的过程。'],
+        ['schema-ct','cognitive',1967,'认知治疗与图式',['Aaron Beck'],5,5,'循证临床','自动思维、核心信念和认知重评构成现代 CBT 的核心。'],
+        ['rebt','cognitive',1955,'理性情绪行为疗法',['Albert Ellis'],4,4,'成熟临床','强调信念评价如何影响情绪与行为，并通过辩驳和行动改变。'],
+        ['dual-process','cognitive',1974,'双过程判断与决策',['Daniel Kahneman','Amos Tversky'],5,5,'强研究基础','启发式、偏差、快速直觉和审慎推理影响公共政策与日常决策。'],
+        ['memory-construction','cognitive',1974,'记忆重构与可塑性',['Elizabeth Loftus','Daniel Schacter'],5,4,'强研究基础','记忆会被遗忘、暗示和重构，对司法、教育和自我理解都很重要。'],
+        ['act','contextual',1986,'接纳与承诺疗法 ACT',['Steven C. Hayes'],4,5,'循证临床','以心理灵活性、接纳、去融合、价值和承诺行动组织改变。'],
+        ['dbt','contextual',1991,'辩证行为疗法 DBT',['Marsha Linehan'],5,4,'循证临床','将接纳与改变、正念、痛苦耐受和情绪调节结合起来。'],
+        ['mbct','contextual',2002,'正念认知疗法 MBCT',['Zindel Segal','Mark Williams','John Teasdale'],4,4,'循证临床','将正念练习与认知治疗结合，特别关注复发预防。'],
+        ['compassion','contextual',2005,'慈悲聚焦疗法',['Paul Gilbert','Kristin Neff'],3,4,'发展中证据','处理羞耻、自我批评和威胁系统，连接临床与自我关怀实践。'],
+        ['person-centered','humanistic',1951,'来访者中心疗法',['Carl Rogers'],5,5,'临床传统','共情、真诚和无条件积极关注深刻影响咨询、教育和助人关系。'],
+        ['self-actualization','humanistic',1954,'需求与自我实现',['Abraham Maslow'],4,5,'大众影响广','在人格成长和组织管理中影响广泛，但层级模型常被过度简化。'],
+        ['logotherapy','humanistic',1946,'意义治疗',['Viktor Frankl'],4,4,'临床传统','关注人在限制和痛苦中如何发现意义、责任与选择。'],
+        ['existential','humanistic',1980,'存在主义心理治疗',['Irvin Yalom','Rollo May'],4,4,'临床传统','围绕死亡、自由、孤独、意义和真实关系组织治疗。'],
+        ['affective-neuro','neuro',1994,'情感神经科学',['Antonio Damasio','Joseph LeDoux','Jaak Panksepp'],5,4,'强研究基础','研究情绪、威胁、身体状态和决策的脑机制。'],
+        ['memory-plasticity','neuro',1970,'记忆与突触可塑性',['Eric Kandel'],5,4,'强研究基础','连接细胞机制、学习、记忆与精神医学基础研究。'],
+        ['stress-biology','neuro',1984,'压力神经内分泌',['Robert Sapolsky','Bruce McEwen'],5,5,'强研究基础','解释慢性压力、身体负荷、社会环境和行为之间的跨层关系。'],
+        ['neuropsychology','neuro',1960,'临床神经心理学',['Alexander Luria','Brenda Milner'],5,5,'成熟应用','通过认知评估理解脑损伤、疾病与日常功能。'],
+        ['behavioral-biology','neuro',2017,'行为的多层生物学',['Robert Sapolsky'],4,5,'科学综合','从神经、激素、基因、发展、文化和历史共同解释行为。'],
+        ['piaget','developmental',1936,'认知发展阶段',['Jean Piaget'],5,4,'历史与研究传统','儿童通过行动和结构重组发展认知，阶段模型影响深远也经历修正。'],
+        ['sociocultural','developmental',1934,'社会文化发展理论',['Lev Vygotsky'],5,5,'强应用','语言、文化工具、共同活动和最近发展区影响教育与学习科学。'],
+        ['lifespan','developmental',1980,'毕生发展',['Paul Baltes','Erik Erikson'],4,5,'强研究基础','发展贯穿终生，包含成长、维持、适应和失落。'],
+        ['ecological','developmental',1979,'生态系统理论',['Urie Bronfenbrenner'],5,5,'广泛应用','家庭、学校、社区、制度与历史时间共同塑造发展。'],
+        ['infant-science','developmental',1999,'婴幼儿学习科学',['Alison Gopnik','Andrew Meltzoff','Patricia Kuhl'],4,4,'强研究基础','实验研究揭示婴儿的统计学习、因果推理和语言发展。'],
+        ['traits','social',1937,'人格特质与大五模型',['Gordon Allport','Lewis Goldberg','Paul Costa','Robert McCrae'],5,5,'强研究基础','以稳定维度描述个体差异，是人格研究和应用测量的核心框架。'],
+        ['social-cognitive-personality','social',1986,'社会认知人格理论',['Albert Bandura','Walter Mischel'],4,5,'强研究基础','人格表现来自个人、情境、目标和自我调节的动态互动。'],
+        ['field-theory','social',1936,'场论与群体动力',['Kurt Lewin'],5,5,'历史与应用传统','行为是人与环境共同作用的函数，影响组织、社会和行动研究。'],
+        ['social-identity','social',1979,'社会认同理论',['Henri Tajfel','John Turner'],5,5,'强研究基础','群体归属、内外群体区分和身份影响偏见、合作与政治行为。'],
+        ['dissonance','social',1957,'认知失调',['Leon Festinger'],5,5,'强研究基础','信念与行为不一致会产生调节压力，广泛用于态度与行为研究。'],
+        ['influence','social',1951,'从众、服从与说服',['Solomon Asch','Stanley Milgram','Robert Cialdini'],5,5,'强研究基础','揭示规范、权威、情境和说服原则如何塑造选择。'],
+        ['cultural','social',1991,'文化心理学',['Hazel Markus','Shinobu Kitayama','Richard Shweder'],5,5,'强研究基础','自我、情绪和认知嵌入文化意义与社会实践。'],
+        ['classification','clinical',1899,'精神障碍分类传统',['Emil Kraepelin','Eugen Bleuler'],5,5,'成熟临床系统','从疾病实体到 DSM/ICD，分类服务沟通与照护，也存在边界和标签争议。'],
+        ['evidence-practice','clinical',1995,'循证心理实践',['APA Presidential Task Force'],5,5,'临床方法框架','整合最佳研究证据、临床专业能力与患者特征、文化和偏好。'],
+        ['common-factors','clinical',1961,'治疗共同因素',['Carl Rogers','Jerome Frank','Bruce Wampold'],4,5,'研究与临床框架','治疗联盟、期望、共情和情境因素跨越不同流派。'],
+        ['rdoc-framework','rdoc',2010,'RDoC 维度研究',['Thomas Insel','Bruce Cuthbert','NIMH Workgroups'],4,3,'研究框架','以神经行为功能维度跨诊断研究心理健康，不是临床诊断替代品。'],
+        ['hitop','rdoc',2017,'HiTOP 分层精神病理学',['Roman Kotov','Robert Krueger'],4,3,'发展中研究','以经验相关的症状维度和层级结构补充传统分类。'],
+        ['psychometrics','rdoc',1904,'心理测量与潜变量',['Charles Spearman','Lee Cronbach'],5,5,'基础方法','信度、效度、因子分析和测验理论支撑人格、能力与临床测量。'],
+        ['computational','rdoc',2010,'计算精神病学',['Peter Dayan','Ray Dolan'],3,2,'前沿研究','用学习模型、决策模型和计算表型研究精神病理机制。'],
+        ['trauma-recovery','trauma',1992,'创伤与复原阶段',['Judith Herman'],4,4,'临床传统','安全、记忆与哀悼、重新连接，并重视权力和社会关系。'],
+        ['trauma-cbt','trauma',1980,'创伤聚焦 CBT／暴露',['Edna Foa','Patricia Resick'],5,4,'循证临床','处理创伤记忆、回避、意义和功能恢复，是 PTSD 重要治疗路径。'],
+        ['emdr','trauma',1989,'EMDR',['Francine Shapiro'],4,4,'循证临床','以结构化记忆加工和双侧刺激治疗 PTSD，需要规范训练与适应证判断。'],
+        ['body-trauma','trauma',1994,'身体与创伤取向',['Bessel van der Kolk','Peter Levine'],3,4,'证据不均衡','强调身体感受和调节；不同具体疗法的证据强度差异很大。'],
+        ['biopsychosocial','health',1977,'生物—心理—社会模型',['George Engel'],5,5,'整合框架','将疾病与健康放回生物、心理、关系和社会制度的共同作用中。'],
+        ['stress-coping','health',1984,'压力与应对',['Richard Lazarus','Susan Folkman'],5,5,'强研究基础','评价、资源和应对方式影响压力体验与健康结果。'],
+        ['mbsr','health',1979,'正念减压 MBSR',['Jon Kabat-Zinn'],4,5,'成熟应用','把世俗化正念用于压力、疼痛和慢性病照护，并需区分实践收益与夸大宣传。'],
+        ['learned-helplessness','positive',1967,'习得性无助与积极心理学',['Martin Seligman'],5,5,'强研究基础','从控制感缺失研究延展到优势、意义、关系和福祉。'],
+        ['flow','positive',1975,'心流',['Mihaly Csikszentmihalyi'],4,5,'强应用','挑战与能力匹配时出现高度投入和自我忘却体验。'],
+        ['self-determination','positive',1985,'自我决定理论',['Edward Deci','Richard Ryan'],5,5,'强研究基础','自主、胜任和联结支持动机、学习、工作与健康行为。'],
+        ['family-systems','systems',1959,'Bowen 家庭系统',['Murray Bowen'],4,4,'临床传统','分化、三角关系和代际传递帮助理解家庭中的情绪过程。'],
+        ['structural-family','systems',1974,'结构式家庭治疗',['Salvador Minuchin'],4,4,'临床传统','通过边界、联盟和家庭结构理解并改变互动。'],
+        ['organizational','systems',1964,'组织心理与工作动机',['Edgar Schein','Victor Vroom'],5,5,'成熟应用','将动机、领导、文化、团队与人员选择用于工作环境。'],
+        ['learning-science','systems',1989,'学习科学与教育应用',['John Bransford','Ann Brown'],5,5,'成熟应用','整合认知、发展、社会互动与教学设计改善学习。']
+      ];
+      const pmSupplementalBooks=[
+        ['Soul Architects','灵魂建筑师','心理学思想史','psychodynamic','Steve Ayan',{zh:'以人物故事梳理现代心理学的诞生、分歧与时代语境。'},'open-library','history','easy'],
+        ['Why We Differ','我们何以不同：人格心理学40讲','人格心理学40讲','social','王芳',{zh:'从大五人格、人格成因和人格动力进入现代人格心理学。'},'open-library','overview','easy'],
+        ['The Relations Between the Ego and the Unconscious','自我与无意识','自我と無意識','jungian','C. G. Jung',{zh:'理解自我、人格面具、集体无意识与个体化的重要原典。'},'open-library','theory','hard'],
+        ['Synchronicity','共时性','共時性','jungian','C. G. Jung',{zh:'荣格提出非因果关联原则的原典，应与概率、认知偏差和科学批判伴读。'},'open-library','critique','hard'],
+        ['The Dream Monk of Kosenji','高山寺的梦僧','明恵 夢を生きる','jungian','河合隼雄',{zh:'以日本梦文化和佛教传统展示荣格心理学的跨文化转译。'},'open-library','translation','medium'],
+        ['The Courage to Be Disliked','被讨厌的勇气','嫌われる勇気','humanistic','岸见一郎 / 古贺史健',{zh:'以对话体介绍阿德勒的目的论、课题分离和共同体感觉。'},'open-library','practice','easy'],
+        ['Determined','命定','Determined','neuro','Robert Sapolsky',{zh:'从神经科学、发展与环境讨论自由意志，应与哲学和责任问题对读。'},'open-library','extension','hard'],
+        ['Zen and the Art of Motorcycle Maintenance','禅与摩托车维修艺术','禅とオートバイ修理技術','humanistic','Robert M. Pirsig',{zh:'以小说和哲学追问理性、价值与生活实践，是心理学的邻接读物。'},'open-library','adjacent','medium'],
+        ['Living Untethered','活出不羁人生','Living Untethered','contextual','Michael A. Singer',{zh:'面向大众的观察念头和松开心理执着练习，需与科学正念研究区分。'},'open-library','adjacent','easy'],
+        ['Altered Traits','改变的特质','Altered Traits','health','Daniel Goleman / Richard Davidson',{zh:'综述冥想研究，并区分短期状态变化与长期特质改变。'},'open-library','critique','medium']
+      ];
+      const pmStreamLinks=[['classical-analysis','analytical','anti'],['classical-analysis','object-relations','primary'],['object-relations','attachment','primary'],['attachment','trauma-recovery','secondary'],['classical-conditioning','trauma-cbt','primary'],['operant','social-learning','primary'],['social-learning','schema-ct','secondary'],['information-processing','schema-ct','primary'],['schema-ct','act','anti'],['schema-ct','dbt','secondary'],['mbsr','mbct','primary'],['person-centered','common-factors','primary'],['stress-biology','stress-coping','secondary'],['traits','hitop','secondary'],['psychometrics','traits','primary'],['psychometrics','hitop','primary'],['affective-neuro','rdoc-framework','primary'],['ecological','biopsychosocial','secondary'],['sociocultural','learning-science','primary'],['field-theory','organizational','primary'],['self-determination','organizational','secondary'],['east-asian-jung','mbsr','secondary'],['synchronicity','dual-process','anti']];
+      const pmNodes=[];const pmEdgesData=[];const pmById=new Map();const pmDomainPositions={};
+      const pmGroupForDomain={};domainGroups.forEach(group=>group.domains.forEach(id=>pmGroupForDomain[id]=group.id));
+      function pmYearY(year){return 170+(Math.max(1880,Math.min(2025,year))-1880)*15.25;}
+      function pmSlug(value){let h=0;for(let i=0;i<value.length;i++)h=((h<<5)-h+value.charCodeAt(i))|0;return Math.abs(h).toString(36)}
+      function pmShort(value,length){const text=String(value||'');return text.length>length?`${text.slice(0,length-1)}…`:text}
+      function pmContribution(note){return String(note||'').split(/[。，；：:]/)[0].trim()}
+      function pmLabels(node){if(node.type==='domain'){const names=node.people.slice(0,2).join(' · '),domainTitle=t(byId[node.domainId].title);return pmState.lens==='person'?{title:names,meta:domainTitle}:{title:domainTitle,meta:names}}if(node.type==='unit')return pmState.lens==='person'?{title:node.person,meta:node.theory}:{title:node.theory,meta:node.person};const bookTitle=state.lang==='en'?node.originalTitle:state.lang==='ja'?(node.japaneseTitle||node.originalTitle):node.title;return{title:bookTitle,meta:node.author}}
+      domainGroups.forEach(group=>{
+        const members=group.domains.map(id=>byId[id]).filter(Boolean);
+        members.forEach((domain,index)=>{
+          const x=pmLaneX[group.id]+((index%3)-1)*190;
+          const y=pmYearY(pmDomainYears[domain.id]||1950)+(Math.floor(index/3)%2)*50;
+          pmDomainPositions[domain.id]={x,y};
+          const domainStreams=pmStreams.filter(stream=>stream[1]===domain.id);const domainBooks=[...books,...pmSupplementalBooks].filter(book=>book[3]===domain.id);const domainPeople=[...new Set(domainStreams.flatMap(stream=>stream[4]))];
+          pmNodes.push({id:`domain-${domain.id}`,type:'domain',domainId:domain.id,x,y,color:domain.color,title:domain.title.zh,note:domain.question.zh,desc:domain.relation.zh,people:domainPeople,ideas:domain.ideas.zh});
+          domainStreams.forEach((stream,sIndex)=>{const px=x+((sIndex%4)-1.5)*145;const py=Math.max(y+100,pmYearY(stream[2]))+Math.floor(sIndex/4)*44;pmNodes.push({id:`unit-${stream[0]}`,type:'unit',domainId:domain.id,x:px,y:py,color:domain.color,title:stream[3],person:stream[4].join(' · '),theory:stream[3],year:stream[2],importance:stream[5],breadth:stream[6],evidence:stream[7],note:stream[8]});pmEdgesData.push({source:`domain-${domain.id}`,target:`unit-${stream[0]}`,type:'stem'});});
+          domainBooks.forEach((book,bIndex)=>{const bx=x+((bIndex%4)-1.5)*140;const by=Math.min(2380,y+430+Math.floor(bIndex/4)*64);pmNodes.push({id:`book-${pmSlug(book[1]+book[4])}`,type:'book',domainId:domain.id,x:bx,y:by,color:'#675aa9',title:book[1],originalTitle:book[0],japaneseTitle:book[2],author:book[4],note:book[5][state.lang]||book[5].zh,sourceId:book[6],role:book[7],depth:book[8]});pmEdgesData.push({source:`domain-${domain.id}`,target:`book-${pmSlug(book[1]+book[4])}`,type:'stem'});});
+        });
+      });
+      links.forEach(([a,b],index)=>{const type=(a==='jungian'&&b==='psychodynamic')||(a==='clinical'&&b==='psychodynamic')?'anti':index%3===0?'primary':'secondary';pmEdgesData.push({source:`domain-${a}`,target:`domain-${b}`,type});});
+      pmStreamLinks.forEach(([a,b,type])=>pmEdgesData.push({source:`unit-${a}`,target:`unit-${b}`,type}));
+      pmNodes.forEach(n=>pmById.set(n.id,n));
+      const pmViewport=document.getElementById('pmViewport'),pmMap=document.getElementById('pmMap'),pmTransform=document.getElementById('pmTransform');
+      function pmRenderBackground(){let html='';for(let year=1880;year<=2020;year+=5){const y=pmYearY(year);html+=`<line class="pm-year-line ${year%20===0?'major':''}" x1="70" y1="${y}" x2="3130" y2="${y}"></line>${year%20===0?`<text class="pm-year-label" x="82" y="${y-8}">${year}</text>`:''}`};domainGroups.forEach(group=>{const x=pmLaneX[group.id];html+=`<rect class="pm-lane" x="${x-355}" y="90" width="710" height="2320" rx="12" fill="${group.color}10" stroke="${group.color}55"></rect><text class="pm-lane-title" x="${x-320}" y="138">${t(group.title).replace(/^. · /,'')}</text><text class="pm-lane-note" x="${x-318}" y="163">${t(group.note)}</text>`});document.getElementById('pmBackground').innerHTML=html}
+      const pmOverviewBaseColors={traditions:'#4c9b8f',sciences:'#7182b2',clinical:'#bb6979',applied:'#b79a58'};
+      const pmUI={
+        zh:{brandNote:'文献影响 × 结构广度 · 1880—现在',personLens:'人物优先',theoryLens:'理论优先',timelineTab:'时间线索',genealogyTab:'谱系线索',peopleTab:'人物顺序',search:'搜索体系、人物、理论贡献或书籍',language:'切换语言',index:'高度 · 文献影响指数 LCI v0　宽度 · 结构广度　颜色 · 谱系',paths:'条路径',year:'登场',locked:'已锁定',lockNote:'平移或缩放后仍会保留',unlock:'解除锁定',overview:'思想全景',timeline:'时间谱系',theories:'理论层级',books:'阅读索引',people:'人物索引',info:'地图说明',primaryLink:'主要影响',secondaryLink:'次要影响／桥接',debateLink:'反动／争论'},
+        en:{brandNote:'Literature influence × structural breadth · 1880—now',personLens:'People first',theoryLens:'Theory first',timelineTab:'Chronology',genealogyTab:'Lineages',peopleTab:'People',search:'Search systems, people, theories or books',language:'Change language',index:'Height · Literature Contribution Index v0　Width · structural breadth　Color · lineage',paths:'paths',year:'emerged',locked:'Locked',lockNote:'Relations remain visible while panning or zooming',unlock:'Unlock',overview:'Overview',timeline:'Timeline',theories:'Theory levels',books:'Reading index',people:'People index',info:'How to read',primaryLink:'Primary influence',secondaryLink:'Secondary / bridge',debateLink:'Reaction / debate'},
+        ja:{brandNote:'文献影響 × 構造的広がり · 1880—現在',personLens:'人物優先',theoryLens:'理論優先',timelineTab:'時間の手がかり',genealogyTab:'系譜の手がかり',peopleTab:'人物の順序',search:'体系・人物・理論・書籍を検索',language:'言語を切り替える',index:'高さ · 文献影響指数 LCI v0　幅 · 構造的広がり　色 · 系譜',paths:'経路',year:'登場',locked:'固定中',lockNote:'移動・拡大後も関係を保持',unlock:'固定解除',overview:'思想の全景',timeline:'時間系譜',theories:'理論階層',books:'読書索引',people:'人物索引',info:'地図の読み方',primaryLink:'主要な影響',secondaryLink:'副次的影響／橋渡し',debateLink:'反動／論争'}
+      };
+      const pmOverviewText={
+        zh:{
+          blocks:['心理学思想，沿时间形成天际线','从左到右按体系登场时间排列。高度表示文献影响指数，宽度表示结构广度；时间不再重复控制柱高。'],
+          buckets:['四个世界，组成一座连续的思想城市','四大谱系及其分支以 2pt 等距排列。高度和宽度沿用同一套指标，每个大领域使用一种纯色。'],
+          people:['人物按进入心理学史的时间铺开','以首次重要理论或研究的年代排序并串联成链；圆形大小表示当前人物贡献度原型值。']
+        },
+        en:{
+          blocks:['Psychological thought becomes a skyline through time','Systems run left to right by first major appearance. Height encodes literature influence; width encodes structural breadth.'],
+          buckets:['Four worlds form one continuous city of ideas','Four lineages and their branches use an even 2pt gap. Height and width keep the same encoding; each lineage uses one solid color.'],
+          people:['People unfold in their order of historical appearance','Linked by the first major theory or study. Circle size shows the current provisional person-contribution value.']
+        },
+        ja:{
+          blocks:['心理学思想は時間に沿ってスカイラインを形づくる','主要な登場年代の順に左から右へ配置。高さは文献影響、幅は構造的広がりを示します。'],
+          buckets:['四つの世界が一続きの思想都市をつくる','四系譜と分枝を2ptの等間隔で配置。同じ高さ・幅の符号を保ち、各領域を一つの単色で示します。'],
+          people:['人物を心理学史への登場順に並べる','最初の主要理論・研究の年代順に連結。円の大きさは現在の人物貢献度試作値を示します。']
+        }
+      };
+      function pmOverviewGroup(domainId){return domainGroups.find(group=>group.domains.includes(domainId))}
+      function pmOverviewColor(domainId){return pmOverviewBaseColors[pmOverviewGroup(domainId).id]}
+      function pmText(key){return(pmUI[state.lang]||pmUI.zh)[key]||pmUI.zh[key]||key}
+      function pmOverviewGroupTitle(group){return t(group.title).replace(/^. · /,'')}
+      function pmDomainLabel(domainId){return t(byId[domainId].title)}
+      function pmOverviewStats(node){
+        const streams=pmNodes.filter(n=>n.type==='unit'&&n.domainId===node.domainId);
+        const avgImportance=streams.reduce((sum,n)=>sum+n.importance,0)/Math.max(1,streams.length);
+        const avgBreadth=streams.reduce((sum,n)=>sum+n.breadth,0)/Math.max(1,streams.length);
+        const structure=streams.length;
+        const canonical=Math.min(5,(byId[node.domainId].ideas.zh||[]).length);
+        const raw=avgImportance*.45+Math.min(5,Math.log2(structure+1)*2.05)*.25+avgBreadth*.20+canonical*.10;
+        return{streams,avgImportance,avgBreadth,structure,canonical,raw};
+      }
+      function pmDomainMetrics(){
+        const nodes=pmNodes.filter(n=>n.type==='domain');
+        const rows=nodes.map(node=>({node,...pmOverviewStats(node)}));
+        const values=rows.map(row=>row.raw),lo=Math.min(...values),hi=Math.max(...values);
+        const provisionalFloor={jungian:82};
+        rows.forEach(row=>{const computed=Math.round(42+(row.raw-lo)/Math.max(.001,hi-lo)*56);row.index=Math.max(computed,provisionalFloor[row.node.domainId]||0);row.widthFactor=row.structure<=3?.86:row.structure<=4?1:1.18;});
+        return rows;
+      }
+      function pmOverviewDefs(){return ''}
+      function pmContinuousLayout(rows,x0,x1,gap=9){const total=rows.reduce((sum,row)=>sum+row.widthFactor,0),unit=((x1-x0)-gap*(rows.length-1))/total;let cursor=x0;return rows.map(row=>{const left=cursor,right=cursor+row.widthFactor*unit;cursor=right+gap;return{row,left,right,x:(left+right)/2,width:right-left}})}
+      function pmRidgeGeometry(layout,base,heightFor){const tops=layout.map(item=>base-heightFor(item.row));return layout.map((item,index)=>({...item,top:tops[index],leftTop:index?((tops[index-1]+tops[index])/2):tops[index],rightTop:index<layout.length-1?((tops[index]+tops[index+1])/2):tops[index]}))}
+      function pmColumn(item,base,index,attribute){
+        const {row,left,right,x,width,top,leftTop,rightTop}=item,color=pmOverviewColor(row.node.domainId),label=pmDomainLabel(row.node.domainId),year=pmDomainYears[row.node.domainId]||1950;
+        const fill=color,shine=Math.max(9,width*.1),shineTop=leftTop+(top-leftTop)*Math.min(1,shine/Math.max(1,width/2));
+        const fontSize=state.lang==='en'?(label.length>30?31:label.length>22?35:39):(label.length>15?36:43);
+        const body=`M ${left} ${base} L ${left} ${leftTop} L ${x} ${top} L ${right} ${rightTop} L ${right} ${base} Z`;
+        const sheenPath=`M ${left} ${base} L ${left} ${leftTop} L ${left+shine} ${shineTop} L ${left+shine} ${base} Z`;
+        return `<g class="pm-overview-mark pm-column" ${attribute} role="button" tabindex="0" aria-label="${label}，LCI ${row.index}，${year}" style="--overview-color:${color};--overview-fill:${fill}"><title>${label} · LCI ${row.index} · ${row.structure} ${pmText('paths')}</title><path class="pm-art-fill pm-column-body" d="${body}"></path><path class="pm-column-sheen" d="${sheenPath}"></path><text class="pm-column-score" x="${x}" y="${top+48}" text-anchor="middle">${row.index}</text><text class="pm-column-name" style="font-size:${fontSize}px" x="${x+7}" y="${base-30}" text-anchor="start" transform="rotate(-90 ${x+7} ${base-30})">${label}</text></g>`;
+      }
+      function pmRenderOverviewBlocks(){
+        const rows=pmDomainMetrics().sort((a,b)=>(pmDomainYears[a.node.domainId]||1950)-(pmDomainYears[b.node.domainId]||1950));
+        const x0=250,x1=3050,base=2180,layout=pmRidgeGeometry(pmContinuousLayout(rows,x0,x1),base,row=>300+row.index*9);
+        let html=pmOverviewDefs()+`<line class="pm-chart-baseline" x1="${x0-28}" y1="${base}" x2="${x1+28}" y2="${base}"></line><text class="pm-index-key" x="${x0}" y="${base+112}">${pmText('index')}</text>`;
+        layout.forEach((item,index)=>{html+=pmColumn(item,base,index,`data-super-domain="${item.row.node.id}"`);html+=`<text class="pm-chart-year" x="${item.x}" y="${base+43}" text-anchor="middle">${pmDomainYears[item.row.node.domainId]}</text>`;});
+        return html;
+      }
+      function pmBindGenealogyHover(){
+        const layer=document.getElementById('pmSuperLayer');const streams=[...layer.querySelectorAll('.pm-gene-stream')];const linkEls=[...layer.querySelectorAll('.pm-gene-link')];
+        streams.forEach(stream=>{const id=stream.dataset.gene;
+          const enter=()=>{layer.classList.add('gene-focus');const related=new Set([id]);linkEls.forEach(l=>{const hit=l.dataset.a===id||l.dataset.b===id;l.classList.toggle('spot',hit);if(hit){related.add(l.dataset.a);related.add(l.dataset.b);}});streams.forEach(o=>o.classList.toggle('spot',related.has(o.dataset.gene)));};
+          const leave=()=>{layer.classList.remove('gene-focus');linkEls.forEach(l=>l.classList.remove('spot'));streams.forEach(o=>o.classList.remove('spot'));};
+          stream.addEventListener('mouseenter',enter);stream.addEventListener('mouseleave',leave);stream.addEventListener('focus',enter);stream.addEventListener('blur',leave);
+        });
+      }
+      function pmRenderOverviewBuckets(){
+        const metrics=new Map(pmDomainMetrics().map(row=>[row.node.domainId,row])),base=2140,x0=245,x1=3055;
+        const rows=domainGroups.flatMap(group=>[...group.domains].sort((a,b)=>(pmDomainYears[a]||1950)-(pmDomainYears[b]||1950)).map(id=>metrics.get(id)));
+        const layout=pmRidgeGeometry(pmContinuousLayout(rows,x0,x1),base,row=>280+row.index*9);let html=pmOverviewDefs();
+        domainGroups.forEach(group=>{const members=layout.filter(item=>group.domains.includes(item.row.node.domainId)),start=members[0].left,end=members[members.length-1].right,center=(start+end)/2,label=pmOverviewGroupTitle(group),available=end-start-30,fit=label.length*21>available?` textLength="${available}" lengthAdjust="spacingAndGlyphs"`:'';html+=`<rect class="pm-bucket-band" x="${start}" y="650" width="${end-start}" height="${base-650}" fill="${pmOverviewBaseColors[group.id]}"></rect><line class="pm-bucket-rule" x1="${start}" y1="${base+76}" x2="${end}" y2="${base+76}"></line><text class="pm-bucket-heading" x="${center}" y="${base+122}" text-anchor="middle"${fit}>${label}</text>`;});
+        layout.forEach((item,index)=>{html+=pmColumn(item,base,index,`data-super-domain="${item.row.node.id}"`)});html+=`<line class="pm-chart-baseline" x1="225" y1="${base}" x2="3075" y2="${base}"></line><text class="pm-index-key" x="245" y="${base+202}">${pmText('index')}</text>`;return html;
+      }
+      function pmPeopleOverviewData(){
+        const people=new Map();pmNodes.filter(n=>n.type==='unit').forEach(node=>node.person.split(' · ').forEach(name=>{const weight=node.importance*1.45+node.breadth;const current=people.get(name)||{name,raw:0,count:0,year:node.year,nodeId:node.id,domainId:node.domainId,best:-1,domains:new Set()};current.raw+=weight;current.count+=1;current.domains.add(node.domainId);current.year=Math.min(current.year,node.year);if(weight>current.best){current.best=weight;current.nodeId=node.id;current.domainId=node.domainId}people.set(name,current)}));const rows=[...people.values()],values=rows.map(row=>row.raw),lo=Math.min(...values),hi=Math.max(...values);rows.forEach(row=>{row.index=Math.round(40+(row.raw-lo)/Math.max(.001,hi-lo)*58);row.widthFactor=row.domains.size>1?1.18:row.count>1?1:.86;});return rows.sort((a,b)=>a.year-b.year||b.index-a.index).slice(0,24)
+      }
+      const pmPersonNames={
+        'Sigmund Freud':{zh:'西格蒙德·弗洛伊德',ja:'ジークムント・フロイト'},'Emil Kraepelin':{zh:'埃米尔·克雷佩林',ja:'エミール・クレペリン'},'Eugen Bleuler':{zh:'欧根·布洛伊勒',ja:'オイゲン・ブロイラー'},'Ivan Pavlov':{zh:'伊万·巴甫洛夫',ja:'イワン・パブロフ'},'John Watson':{zh:'约翰·华生',ja:'ジョン・B・ワトソン'},'Charles Spearman':{zh:'查尔斯·斯皮尔曼',ja:'チャールズ・スピアマン'},'Lee Cronbach':{zh:'李·克朗巴赫',ja:'リー・クロンバック'},'Carl Gustav Jung':{zh:'卡尔·古斯塔夫·荣格',ja:'カール・グスタフ・ユング'},
+        'Gordon Allport':{zh:'戈登·奥尔波特',ja:'ゴードン・オールポート'},'Heinz Hartmann':{zh:'海因茨·哈特曼',ja:'ハインツ・ハルトマン'},'Anna Freud':{zh:'安娜·弗洛伊德',ja:'アンナ・フロイト'},'Jean Piaget':{zh:'让·皮亚杰',ja:'ジャン・ピアジェ'},'Kurt Lewin':{zh:'库尔特·勒温',ja:'クルト・レヴィン'},'Donald Winnicott':{zh:'唐纳德·温尼科特',ja:'ドナルド・ウィニコット'},'Melanie Klein':{zh:'梅兰妮·克莱因',ja:'メラニー・クライン'},'Lev Vygotsky':{zh:'列夫·维果茨基',ja:'レフ・ヴィゴツキー'},
+        'Lewis Goldberg':{zh:'刘易斯·戈德堡',ja:'ルイス・ゴールドバーグ'},'Paul Costa':{zh:'保罗·科斯塔',ja:'ポール・コスタ'},'Robert McCrae':{zh:'罗伯特·麦克雷',ja:'ロバート・マクレー'},'B. F. Skinner':{zh:'B. F. 斯金纳',ja:'B・F・スキナー'},'Erich Neumann':{zh:'埃里希·诺伊曼',ja:'エーリッヒ・ノイマン'},'Michael Fordham':{zh:'迈克尔·福德姆',ja:'マイケル・フォーダム'},'Viktor Frankl':{zh:'维克多·弗兰克尔',ja:'ヴィクトール・フランクル'},'Carl Rogers':{zh:'卡尔·罗杰斯',ja:'カール・ロジャーズ'}
+      };
+      function pmPersonDisplayName(name){return state.lang==='en'?name:(pmPersonNames[name]?.[state.lang]||name)}
+      function pmRenderOverviewPeople(){
+        const people=pmPeopleOverviewData(),cols=8,rowGap=480,points=people.map((person,index)=>{const row=Math.floor(index/cols),col=index%cols,displayCol=row%2?cols-1-col:col;return{x:390+displayCol*370,y:1080+row*rowGap+(col%2?28:-18),person,index}});
+        const stars=Array.from({length:108},(_,i)=>{const x=130+(i*337)%2940,y=650+(i*191)%1580,r=1.6+(i%5)*.75,o=.12+(i%7)*.045;return`<circle class="pm-cosmos-star" cx="${x}" cy="${y}" r="${r}" style="--star-opacity:${o}"></circle>`}).join('');
+        const ribbon=points.map((point,index)=>`${index?'L':'M'} ${point.x} ${point.y}`).join(' ');let html=pmOverviewDefs()+stars+`<path class="pm-people-ribbon-glow" d="${ribbon}"></path><path class="pm-people-ribbon" d="${ribbon}"></path>`;
+        points.forEach(({x,y,person,index})=>{const color=pmOverviewColor(person.domainId),r=58+(person.index-40)*.72,name=pmPersonDisplayName(person.name),fit=name.length*(state.lang==='en'?25:46)>320?' textLength="320" lengthAdjust="spacingAndGlyphs"':'';const rays=Array.from({length:8},(_,ray)=>{const a=ray*Math.PI/4,r1=r+22,r2=r+38+(ray%2)*10;return`<line class="pm-person-ray" x1="${Math.cos(a)*r1}" y1="${Math.sin(a)*r1}" x2="${Math.cos(a)*r2}" y2="${Math.sin(a)*r2}"></line>`}).join('');html+=`<g class="pm-overview-mark pm-person-orb" data-super-node="${person.nodeId}" role="button" tabindex="0" aria-label="${name}，${person.year}，LCI ${person.index}" style="--overview-color:${color}" transform="translate(${x} ${y})"><title>${name} · ${person.name} · ${person.year} · LCI ${person.index}</title><circle class="pm-person-halo" r="${r+42}"></circle><circle class="pm-person-orbit" r="${r+26}"></circle>${rays}<circle class="pm-art-fill pm-person-core" r="${r}"></circle><text class="pm-person-score" y="11" text-anchor="middle">${person.index}</text><text class="pm-person-name" y="${-r-50}" text-anchor="middle"${fit}>${name}</text><text class="pm-person-meta" y="${r+54}" text-anchor="middle">${person.year}</text></g>`;});return html;
+      }
+      function pmEnterOverviewNode(id){const node=pmById.get(id);if(!node)return;const rect=pmViewport.getBoundingClientRect();pmState.scale=node.type==='unit'?.76:.54;pmSelect(id,false,true);pmState.tx=rect.width/2-node.x*pmState.scale-180;pmState.ty=rect.height/2-node.y*pmState.scale;pmApply()}
+      function pmBindOverviewNodes(){const bind=(mark,id)=>{const activate=()=>pmEnterOverviewNode(id);mark.addEventListener('click',activate);mark.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();activate()}})};document.querySelectorAll('[data-super-domain]').forEach(mark=>bind(mark,mark.dataset.superDomain));document.querySelectorAll('[data-super-node]').forEach(mark=>bind(mark,mark.dataset.superNode))}
+      function pmUpdateOverviewControls(){const controls=document.getElementById('pmOverviewControls');controls.classList.toggle('people-mode',pmState.overview==='people');document.querySelectorAll('[data-overview-mode]').forEach(button=>{const active=button.dataset.overviewMode===pmState.overview;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});const [title,note]=(pmOverviewText[state.lang]||pmOverviewText.zh)[pmState.overview];document.getElementById('pmOverviewTitle').textContent=title;document.getElementById('pmOverviewNote').textContent=note}
+      function pmRenderSuper(){const renderer=pmState.overview==='buckets'?pmRenderOverviewBuckets:pmState.overview==='people'?pmRenderOverviewPeople:pmRenderOverviewBlocks;document.getElementById('pmSuperLayer').innerHTML=renderer();pmUpdateOverviewControls();pmBindOverviewNodes()}
+      function pmEdgePath(edge){const a=pmById.get(edge.source),b=pmById.get(edge.target);if(!a||!b)return'';const midY=(a.y+b.y)/2;return`M ${a.x} ${a.y} C ${a.x} ${midY}, ${b.x} ${midY}, ${b.x} ${b.y}`}
+      function pmRenderEdges(){document.getElementById('pmEdges').innerHTML=pmEdgesData.filter(e=>e.type!=='stem').map((e,i)=>`<path class="pm-edge ${e.type}" data-source="${e.source}" data-target="${e.target}" d="${pmEdgePath(e)}"><title>${pmById.get(e.source).title} ↔ ${pmById.get(e.target).title}</title></path>`).join('');document.getElementById('pmStems').innerHTML=pmEdgesData.filter(e=>e.type==='stem').map(e=>{const a=pmById.get(e.source),b=pmById.get(e.target);return`<line class="pm-stem" style="--stem-color:${a.color}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"></line>`}).join('')}
+      function pmRenderNodes(){
+        document.getElementById('pmDomains').innerHTML=pmNodes.filter(n=>n.type==='domain').map(n=>{const l=pmLabels(n);return`<g class="pm-domain ${pmState.selected===n.id?'selected':''}" data-node="${n.id}" style="--node-color:${n.color}" transform="translate(${n.x} ${n.y})"><rect class="node-back" x="-108" y="-34" width="216" height="68" rx="4"></rect><rect class="node-tab" x="-108" y="-34" width="216" height="15" rx="4"></rect><text class="node-year" x="-98" y="-23">${pmDomainYears[n.domainId]}</text><text class="node-title" x="-96" y="2">${pmShort(l.title,22)}</text><text class="node-meta" x="-96" y="22">${pmShort(l.meta,30)}</text></g>`}).join('');
+        document.getElementById('pmUnits').innerHTML=pmNodes.filter(n=>n.type==='unit').map(n=>{const l=pmLabels(n);const width=124+(n.importance+n.breadth)*5;return`<g class="pm-unit" data-node="${n.id}" style="--unit-color:${n.color}" transform="translate(${n.x} ${n.y})"><rect class="unit-back" x="${-width/2}" y="-27" width="${width}" height="54" rx="4"></rect><circle class="unit-dot" cx="${-width/2+13}" cy="-11" r="5"></circle><text class="unit-title" x="${-width/2+24}" y="-7">${pmShort(l.title,20)}</text><text class="unit-meta" x="${-width/2+12}" y="11">${pmShort(l.meta,25)}</text><rect class="unit-score-back" x="${width/2-43}" y="15" width="35" height="9" rx="2"></rect><text class="unit-score" x="${width/2-25.5}" y="22" text-anchor="middle">I${n.importance} · A${n.breadth}</text></g>`}).join('');
+        document.getElementById('pmBooks').innerHTML=pmNodes.filter(n=>n.type==='book').map(n=>{const l=pmLabels(n);return`<g class="pm-book" data-node="${n.id}" transform="translate(${n.x} ${n.y})"><rect class="book-back" x="-65" y="-22" width="130" height="44" rx="2"></rect><rect class="book-spine" x="-65" y="-22" width="6" height="44"></rect><text class="book-title" x="-50" y="-3">${pmShort(l.title,16)}</text><text class="book-meta" x="-50" y="13">${pmRoleLabels[n.role]||'阅读入口'} · ${pmDepthLabels[n.depth]}</text></g>`}).join('');
+        document.querySelectorAll('[data-node]').forEach(el=>{el.addEventListener('click',()=>pmSelect(el.dataset.node,true,true));el.addEventListener('mouseenter',()=>pmHighlight(el.dataset.node));el.addEventListener('mouseleave',pmClearHighlight)})
+      }
+      function pmRelationshipIds(id){const ids=new Set([id]);pmEdgesData.filter(e=>e.type!=='stem'&&(e.source===id||e.target===id)).forEach(e=>{ids.add(e.source);ids.add(e.target)});const node=pmById.get(id);if(node){ids.add(pmDomainNode(node).id);if(node.type==='domain')pmNodes.filter(n=>n.domainId===node.domainId).forEach(n=>ids.add(n.id))}return ids}
+      function pmApplyRelationshipState(id,locked=false){const ids=pmRelationshipIds(id);document.querySelectorAll('.pm-edge').forEach(e=>{const related=e.dataset.source===id||e.dataset.target===id;e.classList.toggle('highlight',related);e.classList.toggle('muted',!related)});document.querySelectorAll('[data-node]').forEach(el=>{el.classList.toggle('selected',el.dataset.node===id);el.classList.toggle('related',ids.has(el.dataset.node)&&el.dataset.node!==id);el.classList.toggle('muted',!ids.has(el.dataset.node))});const indicator=document.getElementById('pmLockState');if(locked){const node=pmById.get(id);const lockName=node.type==='unit'?node.theory:node.type==='domain'?pmDomainLabel(node.domainId):node.title;document.getElementById('pmLockTitle').textContent=`${pmText('locked')} · ${lockName}`;indicator.classList.add('visible')}else indicator.classList.remove('visible')}
+      function pmHighlight(id){if(pmState.locked)return;pmApplyRelationshipState(id,false)}
+      function pmClearHighlight(){if(pmState.locked){pmApplyRelationshipState(pmState.locked,true);return}document.querySelectorAll('.pm-edge').forEach(e=>e.classList.remove('highlight','muted'));document.querySelectorAll('[data-node]').forEach(el=>el.classList.remove('related','muted','selected'))}
+      function pmUnlockRelationship(){pmState.locked=null;pmClearHighlight();document.getElementById('pmLockState').classList.remove('visible')}
+      function pmDomainNode(node){return node.type==='domain'?node:pmById.get(`domain-${node.domainId}`)}
+      function pmSelect(id,focus=false,lock=true){const node=pmById.get(id);if(!node)return;pmState.selected=id;if(lock)pmState.locked=id;pmApplyRelationshipState(pmState.locked||id,Boolean(pmState.locked));pmRenderPanel(node);if(focus)pmFocus(id)}
+      function pmRenderPanel(node){
+        const domain=pmDomainNode(node),domainData=byId[domain.domainId],order={easy:0,medium:1,hard:2};
+        const domainBooks=pmNodes.filter(n=>n.type==='book'&&n.domainId===domain.domainId).sort((a,b)=>order[a.depth]-order[b.depth]);
+        const domainUnits=pmNodes.filter(n=>n.type==='unit'&&n.domainId===domain.domainId),label=pmLabels(node);
+        const ui={zh:{domain:'主流派',unit:'人物 × 理论',book:'代表读物',importance:'理论史重要性',breadth:'应用广度',streams:'中层理论流派',readings:'代表读物',ideas:'核心概念',sampler:'代表阅读',close:'关闭',easy:'入门',medium:'进阶',hard:'深读'},en:{domain:'Main school',unit:'Person × theory',book:'Reading',importance:'Historical importance',breadth:'Application breadth',streams:'Theory streams',readings:'Readings',ideas:'Core concepts',sampler:'Reading sampler',close:'Close',easy:'Entry',medium:'Intermediate',hard:'Deep read'},ja:{domain:'主要学派',unit:'人物 × 理論',book:'代表図書',importance:'思想史的重要性',breadth:'応用範囲',streams:'中間理論',readings:'代表図書',ideas:'主要概念',sampler:'読書案内',close:'閉じる',easy:'入門',medium:'発展',hard:'精読'}}[state.lang];
+        const group=domainGroups.find(g=>g.id===pmGroupForDomain[domain.domainId]);
+        const subtitle=node.type==='domain'?`${pmDomainYears[node.domainId]} · ${pmOverviewGroupTitle(group)}`:pmDomainLabel(domain.domainId);
+        const pair=node.type==='unit'?`${node.person} ↔ ${node.theory}`:`${pmDomainLabel(domain.domainId)} ↔ ${[...new Set(domainUnits.flatMap(n=>n.person.split(' · ')))].join(' · ')}`;
+        const stats=node.type==='unit'?`<div class="pm-panel-stats"><div class="pm-panel-stat"><strong>${node.importance}/5</strong><span>${ui.importance}</span></div><div class="pm-panel-stat"><strong>${node.breadth}/5</strong><span>${ui.breadth}</span></div><div class="pm-panel-stat"><strong>${node.year}</strong><span>${node.evidence}</span></div></div>`:`<div class="pm-panel-stats"><div class="pm-panel-stat"><strong>${domainUnits.length}</strong><span>${ui.streams}</span></div><div class="pm-panel-stat"><strong>${domainBooks.length}</strong><span>${ui.readings}</span></div><div class="pm-panel-stat"><strong>${domainData.ideas.zh.length}</strong><span>${ui.ideas}</span></div></div>`;
+        const description=node.type==='domain'?t(domainData.question):(node.note||node.desc||t(domainData.question));
+        const panel=document.getElementById('pmPanel');panel.style.setProperty('--panel-color',node.color);panel.dataset.panelType='node';
+        panel.innerHTML=`<div class="pm-panel-head"><div class="pm-panel-head-row"><div><p class="pm-panel-kicker">${node.type==='domain'?ui.domain:node.type==='unit'?ui.unit:ui.book}</p><h2>${label.title}</h2><p class="pm-panel-subtitle">${subtitle}</p></div><button id="pmPanelClose" class="pm-panel-close" aria-label="${ui.close}">×</button></div></div><div class="pm-panel-body"><p class="pm-panel-description">${description}</p><div class="pm-pair">${pair}</div>${stats}<h3>${ui.sampler}</h3>${domainBooks.map((book,index)=>{const bookLabel=pmLabels(book).title;return`<button class="pm-reading-item" data-reading-node="${book.id}"><b>${index+1}</b><span>${bookLabel}</span><small>${ui[book.depth]}</small></button>`}).join('')}</div>`;
+        panel.classList.add('open');document.getElementById('pmPanelClose').addEventListener('click',()=>panel.classList.remove('open'));document.querySelectorAll('[data-reading-node]').forEach(b=>b.addEventListener('click',()=>pmSelect(b.dataset.readingNode,true)));
+      }
+      function pmApply(){pmTransform.setAttribute('transform',`translate(${pmState.tx} ${pmState.ty}) scale(${pmState.scale})`);pmUpdateSemanticZoom()}
+      function pmUpdateSemanticZoom(){pmMap.classList.remove('zoom-super','zoom-domain','zoom-unit','zoom-reading');const copy={zh:{super:['心理学天际线','十五个体系 · 选择一座思想柱'],domain:['主流派层','体系、年代与跨体系关系'],unit:['人物 × 理论层','思想由谁提出，又如何延展'],reading:['阅读层','导论、传记、原典与批判性伴读']},en:{super:['Psychology skyline','Fifteen systems · choose a column'],domain:['Main schools','Systems, dates and cross-lineage relations'],unit:['People × theory','Who proposed an idea and how it developed'],reading:['Reading layer','Introductions, biographies, primary texts and critique']},ja:{super:['心理学のスカイライン','15体系 · 思想の柱を選ぶ'],domain:['主要学派層','体系・年代・系譜横断関係'],unit:['人物 × 理論層','誰が提唱し、どう展開したか'],reading:['読書層','概説・伝記・原典・批判的併読']}}[state.lang]||null;let cls,key;if(pmState.scale<.42){cls='zoom-super';key='super'}else if(pmState.scale<.62){cls='zoom-domain';key='domain'}else if(pmState.scale<.88){cls='zoom-unit';key='unit'}else{cls='zoom-reading';key='reading'}pmMap.classList.add(cls);pmViewport.classList.toggle('is-overview',cls==='zoom-super');document.getElementById('pmScaleTitle').textContent=copy[key][0];document.getElementById('pmScaleNote').textContent=copy[key][1]}
+      function pmZoom(factor,cx,cy){const r=pmViewport.getBoundingClientRect();cx=cx??r.width/2;cy=cy??r.height/2;const next=Math.max(.16,Math.min(1.35,pmState.scale*factor));pmState.tx=cx-((cx-pmState.tx)/pmState.scale)*next;pmState.ty=cy-((cy-pmState.ty)/pmState.scale)*next;pmState.scale=next;pmApply()}
+      function pmFit(){const r=pmViewport.getBoundingClientRect();pmState.scale=Math.min((r.width-30)/pmCanvas.width,(r.height-30)/pmCanvas.height);pmState.tx=(r.width-pmCanvas.width*pmState.scale)/2;pmState.ty=(r.height-pmCanvas.height*pmState.scale)/2;pmApply()}
+      function pmFocus(id){const node=pmById.get(id);const r=pmViewport.getBoundingClientRect();pmState.scale=Math.max(.72,pmState.scale);pmState.tx=r.width/2-node.x*pmState.scale-(document.getElementById('pmPanel').classList.contains('open')?160:0);pmState.ty=r.height/2-node.y*pmState.scale;pmApply()}
+      pmViewport.addEventListener('wheel',e=>{e.preventDefault();const r=pmViewport.getBoundingClientRect();pmZoom(e.deltaY<0?1.13:.88,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+      pmViewport.addEventListener('pointerdown',e=>{if(e.target.closest('button,input,[data-node],[data-super-domain],[data-super-node]'))return;pmState.dragging=true;pmState.px=e.clientX;pmState.py=e.clientY;pmViewport.classList.add('dragging');pmViewport.setPointerCapture(e.pointerId)});pmViewport.addEventListener('pointermove',e=>{if(!pmState.dragging)return;pmState.tx+=e.clientX-pmState.px;pmState.ty+=e.clientY-pmState.py;pmState.px=e.clientX;pmState.py=e.clientY;pmApply()});pmViewport.addEventListener('pointerup',()=>{pmState.dragging=false;pmViewport.classList.remove('dragging')});
+      document.getElementById('pmZoomIn').addEventListener('click',()=>pmZoom(1.25));document.getElementById('pmZoomOut').addEventListener('click',()=>pmZoom(.8));document.getElementById('pmFit').addEventListener('click',pmFit);document.getElementById('pmFocus').addEventListener('click',()=>pmFocus(pmState.selected));
+      document.querySelectorAll('[data-pm-lens]').forEach(b=>b.addEventListener('click',()=>{pmState.lens=b.dataset.pmLens;document.querySelectorAll('[data-pm-lens]').forEach(x=>x.classList.toggle('active',x===b));pmRenderNodes();pmSelect(pmState.selected,false,false)}));
+      document.querySelectorAll('[data-overview-mode]').forEach(button=>button.addEventListener('click',()=>{pmState.overview=button.dataset.overviewMode;pmRenderSuper()}));
+      document.querySelectorAll('[data-people-order]').forEach(button=>button.addEventListener('click',()=>{pmState.peopleOrder=button.dataset.peopleOrder;pmRenderSuper()}));
+      document.getElementById('pmUnlock').addEventListener('click',pmUnlockRelationship);
+      const pmMethodContent={
+        zh:{kicker:'Compass / 地图说明',title:'如何阅读 Psychologymap',subtitle:'视觉编码、指标理论与使用边界',intro:'这是一张面向普通学习者的心理学史 Carta。它借用 Musicmap 的连续城市与谱系地图语言，但重新安排视觉变量，使时间、文献影响、结构广度和谱系各自只承担一种含义。',sections:[
+          ['一套贯穿三种视图的视觉语法','位置表示顺序；高度表示文献影响指数；宽度表示结构广度；颜色表示谱系。山峰只是低对比远景，不参与数据编码。柱体紧密相邻、无边框、透明叠色、保持直角与锐利顶面，避免把每根柱做成孤立的学术图标。'],
+          ['Musicmap 参考与本图的改写','Musicmap 的正式 Carta 以时间为纵轴、super-genre 为横向框架；其首页摩天楼主要用高度表示流派年龄。本图保留“连续天际线”和谱系色域，但在时间视图中已由横向顺序表达年代，因此不再让高度重复表示年龄。'],
+          ['文献影响指数 LCI','目标版指数由四部分组成：45% 年代与领域修正后的引用影响，25% 奠基性高影响文献，20% 跨领域传播广度，10% 权威教材、手册与综述中的稳定出现。引用量需取对数并做年代校正，不能用期刊影响因子代替作品质量。','LCI = 45% 修正引用 + 25% 奠基文献 + 20% 传播广度 + 10% 典范地位'],
+          ['当前页面使用 LCI v0','页面尚未接入完整 OpenAlex 文献集，因此当前柱高是编辑性原型：理论史重要性 45%、分支数量的对数值 25%、应用广度 20%、核心概念覆盖 10%，再在当前样本内归一化。为避免“平均分支评分”系统性低估荣格的历史基础地位，本轮暂设荣格体系 LCI 82 的编辑下限；它不是最终算法。','LCI v0 = 45% 编辑重要性 + 25% log(分支数) + 20% 应用广度 + 10% 概念覆盖'],
+          ['柱体宽度','宽度不随机。流派柱表示主要理论、分支和研究方向的结构广度；人物柱表示影响路径与跨领域范围。只使用三档：窄 0.86×、中 1.00×、宽 1.18×，避免视觉面积差异失控。高度与宽度不使用同一个原始变量。'],
+          ['三个首页视图','时间线索按流派公认形成时间排列；谱系线索把四个 bucket 及内部各分支紧密组织；人物顺序按首次重要理论、实验或著作进入心理学史的年代排列，而不是按出生年份。三者共享同一编码，所以切换后无需重新学习。'],
+          ['年份与人物的定义','流派年份取两位以上代表人物已形成可辨识研究或理论传统的大致时间，承认历史争议。人物“登场年”取其在本图中最早的重要理论或研究节点，并非出生年。'],
+          ['颜色与混色','四大谱系保持主色：理论传统为青绿、基础科学为蓝紫、临床组织为玫红、应用与情境为赭金。临床科学、创伤、健康、语境行为、神经与系统等桥接领域使用有限渐变混色，表示交叉而非归属不确定。'],
+          ['关系网与点击锁定','绿色实线表示主要影响，蓝色虚线表示桥接或次要影响，红色点线表示争论、反动或需要批判性伴读。点击任一主题后，主题、相关节点与连线会锁定；平移或缩放不会丢失。点击“解除锁定”或按 Esc 返回全图。'],
+          ['可读性与语言','主标签保持肉眼可读；空间不足时优先隐藏次级信息，而不是无限缩小字体。右上角地球按钮切换简体中文、English、日本語，选择保存在本机。'],
+          ['解释边界','文献影响不等于理论正确、疗法有效或人物道德评价。早期专著、译本和人文学科引用在数据库中容易被低估；未来应公开核心文献映射、数据日期、缺失值和指数版本，并遵守 DORA 对单一计量指标的警告。'],
+          ['待办 · 贡献度模型','人物贡献度与学术体系贡献度需要分别建立更好的计算模型，不能继续共用同一组编辑代理变量。后续讨论将确定文献语料、年代校正、专著与译本权重、跨领域传播以及人物—体系归属规则；当前保留 LCI v0 仅用于视觉原型。']
+        ]},
+        en:{kicker:'Compass / Method',title:'How to read Psychologymap',subtitle:'Visual encodings, index theory and limits',intro:'This is a public-facing Carta of psychology. It borrows Musicmap’s continuous city and lineage language, but assigns one meaning to each visual variable: time, literature influence, structural breadth and lineage.',sections:[
+          ['One grammar across three views','Position shows order; height shows literature influence; width shows structural breadth; color shows lineage. Mountains are low-contrast scenery, not data. Dense, borderless, translucent, square-edged columns form one city rather than isolated academic icons.'],
+          ['What comes from Musicmap','Musicmap’s Carta uses time vertically and super-genres horizontally; its homepage skyscraper height mainly reflects age. Here chronology already occupies horizontal order, so height is freed for literature influence.'],
+          ['Literature Contribution Index','The target index combines 45% field- and age-normalized citations, 25% landmark works, 20% cross-field diffusion and 10% stable presence in authoritative handbooks and reviews. Counts should be log-scaled and age-corrected.','LCI = 45% normalized citations + 25% landmark works + 20% diffusion + 10% canonical presence'],
+          ['What LCI v0 means now','The page is not yet connected to a complete OpenAlex corpus. Current heights are an editorial prototype: 45% historical importance, 25% log branch count, 20% application breadth and 10% concept coverage. To avoid systematically understating Jung through low average scores across exploratory branches, this revision gives the Jungian system a temporary editorial floor of LCI 82. This is not the final method.','LCI v0 = 45% editorial importance + 25% log(branches) + 20% breadth + 10% concept coverage'],
+          ['Column width','Width is never random. School width represents branches and research directions; person width represents influence paths and cross-field reach. Only three steps are used: .86×, 1× and 1.18×. Height and width never reuse the same source variable.'],
+          ['Three home views','Chronology orders schools by formation; Lineages groups four buckets and their branches; People orders figures by the year of their first major theory, experiment or publication—not birth. All share one encoding grammar.'],
+          ['Dates and appearance','A school date marks the approximate point when a recognizable tradition appeared in work by more than one representative. A person’s appearance is their earliest major node on this map, not their birth year. Both remain historically contestable.'],
+          ['Color and mixing','Teal marks theoretical traditions, indigo basic sciences, rose clinical organization and ochre applied/contextual fields. Bridge domains receive restrained gradients to show overlap without erasing their primary lineage.'],
+          ['Relation lock','Green solid lines show primary influence, blue dashed lines bridges, and red dotted lines debates or reactions. Clicking locks the selected topic and network through pan and zoom; Unlock or Esc restores the full map.'],
+          ['Readability and language','Primary labels remain readable; at low space, secondary information disappears instead of shrinking indefinitely. The globe menu switches Chinese, English and Japanese and remembers the choice locally.'],
+          ['Limits','Literature influence is not truth, treatment efficacy or moral worth. Historical books, translations and humanities citations are systematically undercounted. Future versions must publish corpus mappings, data dates, missingness and metric versions, following DORA’s warning against single-number assessment.'],
+          ['To-do · contribution models','Person contribution and school contribution need separate models rather than one shared set of editorial proxies. A later discussion will specify corpora, age correction, books and translations, cross-field diffusion, and person-to-school attribution. LCI v0 remains only for visual prototyping.']
+        ]},
+        ja:{kicker:'Compass / 地図説明',title:'Psychologymap の読み方',subtitle:'視覚符号・指標理論・利用上の限界',intro:'一般の学習者に向けた心理学史の Carta です。Musicmap の連続した都市と系譜地図を参照しつつ、時間・文献影響・構造的広がり・系譜に一つずつ役割を与えています。',sections:[
+          ['三つの表示を貫く一つの文法','位置は順序、高さは文献影響、幅は構造的広がり、色は系譜を示します。山は低コントラストの遠景で、データではありません。柱は密接・無枠・半透明・直角とし、孤立した学術アイコンにしません。'],
+          ['Musicmap からの参照と変更','Musicmap の Carta は縦軸に時間、横方向に super-genre を置き、首頁の摩天楼は主にジャンルの年齢を高さで表します。本図では年代を横の順序で示すため、高さを文献影響に使います。'],
+          ['文献影響指数 LCI','目標版は、年代・分野補正引用45%、基礎的高影響文献25%、分野横断的拡散20%、権威ある教科書・ハンドブック・レビューでの定着10%で構成します。引用は対数化と年代補正が必要です。','LCI = 補正引用45% + 基礎文献25% + 拡散20% + 典範的位置10%'],
+          ['現在の LCI v0','完全な OpenAlex 文献集合にはまだ接続していません。現在は、思想史的重要性45%、分枝数の対数25%、応用範囲20%、概念カバー10%による編集上の試作です。探索的分枝の平均値によってユングの歴史的基礎位置が過小評価されるのを避けるため、今回はユング体系に LCI 82 の暫定下限を置きます。最終手法ではありません。','LCI v0 = 編集的重要性45% + log(分枝)25% + 応用範囲20% + 概念カバー10%'],
+          ['柱の幅','幅はランダムではありません。学派では理論・分枝・研究方向、人物では影響経路と分野横断性を表します。0.86×、1.00×、1.18×の三段階だけを使い、高さと同じ変数は再利用しません。'],
+          ['三つのホーム表示','時間の手がかりは学派形成順、系譜の手がかりは四つの bucket と分枝、人物の順序は最初の主要理論・実験・著作の年代順です。出生年順ではありません。'],
+          ['年代と登場の定義','学派年は複数の代表者による識別可能な伝統が現れた概算時点。人物の登場年は本図で最初の重要ノードであり、出生年ではありません。歴史的異論を認めます。'],
+          ['色と混色','理論伝統は青緑、基礎科学は藍紫、臨床組織はローズ、応用・文脈は黄土色。橋渡し領域には限定的なグラデーションを使い、交差を示します。'],
+          ['関係網の固定','緑の実線は主要影響、青の破線は橋渡し、赤の点線は論争・反動を示します。クリック後は対象と関係網を固定し、移動・拡大しても保持。解除ボタンまたは Esc で戻ります。'],
+          ['可読性と言語','主要ラベルは肉眼で読める大きさを保ちます。空間不足時は補助情報を隠し、無制限に縮小しません。地球ボタンで中文・English・日本語を切り替え、端末に保存します。'],
+          ['解釈の限界','文献影響は理論の正しさ、治療効果、人物の倫理評価ではありません。古い専門書、翻訳、人文学系引用は過小評価されやすいため、今後は文献対応表、データ日付、欠測、指標版を公開し、DORA の単一指標への警告に従います。'],
+          ['TODO · 貢献度モデル','人物貢献度と学術体系貢献度は、同じ編集代理変数を共有せず、別々のモデルを構築する必要があります。文献集合、年代補正、専門書・翻訳の重み、分野横断的拡散、人物と体系の帰属規則は次回以降に決定し、現在の LCI v0 は視覚試作にのみ残します。']
+        ]}
+      };
+      function pmShowInfo(){const content=pmMethodContent[state.lang]||pmMethodContent.zh,panel=document.getElementById('pmPanel');panel.style.setProperty('--panel-color','#173a33');panel.innerHTML=`<div class="pm-panel-head"><div class="pm-panel-head-row"><div><p class="pm-panel-kicker">${content.kicker}</p><h2>${content.title}</h2><p class="pm-panel-subtitle">${content.subtitle}</p></div><button id="pmPanelClose" class="pm-panel-close" aria-label="Close">×</button></div></div><div class="pm-panel-body"><p class="pm-method-intro">${content.intro}</p>${content.sections.map((section,index)=>`<section class="pm-method-section"><h3>${section[0]}</h3><p class="${index===3||index===9||/待办|To-do|TODO/.test(section[0])?'pm-method-note':''}">${section[1]}</p>${section[2]?`<div class="pm-formula">${section[2]}</div>`:''}</section>`).join('')}</div>`;panel.classList.add('open');panel.dataset.panelType='info';document.getElementById('pmPanelClose').addEventListener('click',()=>panel.classList.remove('open'))}
+      function pmUpdateLanguageUI(){
+        document.documentElement.lang=state.lang;
+        document.querySelectorAll('[data-pm-i18n]').forEach(node=>{node.textContent=pmText(node.dataset.pmI18n)});
+        document.getElementById('pmSearch').placeholder=pmText('search');
+        const trigger=document.getElementById('pmLanguageTrigger');trigger.setAttribute('aria-label',pmText('language'));trigger.title=pmText('language');
+        document.querySelectorAll('[data-pm-lang]').forEach(option=>{const active=option.dataset.pmLang===state.lang;option.classList.toggle('active',active);option.setAttribute('aria-checked',String(active))});
+        const navLabels={home:'overview',timeline:'timeline',theories:'theories',books:'books',people:'people',info:'info'};
+        document.querySelectorAll('[data-pm-nav]').forEach(button=>{const label=pmText(navLabels[button.dataset.pmNav]);button.title=label;button.setAttribute('aria-label',label)});
+        document.querySelector('.pm-lock-copy span').textContent=pmText('lockNote');document.getElementById('pmUnlock').textContent=pmText('unlock');
+      }
+      function pmSetLanguage(lang){
+        if(!['zh','en','ja'].includes(lang))return;state.lang=lang;try{localStorage.setItem('psychologymap-language',lang)}catch(error){}
+        updateStaticText();renderAll();pmUpdateLanguageUI();pmRenderBackground();pmRenderSuper();pmRenderNodes();pmUpdateSemanticZoom();
+        const panel=document.getElementById('pmPanel');if(panel.classList.contains('open')){if(panel.dataset.panelType==='info')pmShowInfo();else pmRenderPanel(pmById.get(pmState.selected));}
+      }
+      const pmLanguageTrigger=document.getElementById('pmLanguageTrigger'),pmLanguageMenu=document.getElementById('pmLanguageMenu');
+      function pmCloseLanguageMenu(){pmLanguageMenu.hidden=true;pmLanguageTrigger.setAttribute('aria-expanded','false')}
+      pmLanguageTrigger.addEventListener('click',event=>{event.stopPropagation();const open=pmLanguageMenu.hidden;pmLanguageMenu.hidden=!open;pmLanguageTrigger.setAttribute('aria-expanded',String(open));if(open)pmLanguageMenu.querySelector('.active')?.focus()});
+      document.querySelectorAll('[data-pm-lang]').forEach(option=>option.addEventListener('click',()=>{pmSetLanguage(option.dataset.pmLang);pmCloseLanguageMenu();pmLanguageTrigger.focus()}));
+      document.addEventListener('click',event=>{if(!event.target.closest('.pm-language'))pmCloseLanguageMenu()});
+      document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(!pmLanguageMenu.hidden){pmCloseLanguageMenu();pmLanguageTrigger.focus()}else if(pmState.locked)pmUnlockRelationship()}});
+      document.querySelectorAll('[data-pm-nav]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-pm-nav]').forEach(item=>item.classList.toggle('active',item===button));const action=button.dataset.pmNav;if(action==='home'){document.getElementById('pmPanel').classList.remove('open');pmUnlockRelationship();pmFit()}else if(action==='timeline'){pmZoom(.5/pmState.scale)}else if(action==='theories'){pmZoom(.7/pmState.scale)}else if(action==='books'){pmZoom(.98/pmState.scale)}else if(action==='people'){pmState.overview='people';pmRenderSuper();document.getElementById('pmPanel').classList.remove('open');pmUnlockRelationship();pmFit()}else if(action==='info'){pmShowInfo()}}));
+      const pmSearch=document.getElementById('pmSearch');document.getElementById('pmSuggestions').innerHTML=pmNodes.map(n=>`<option value="${[n.title,n.person,n.theory,n.author].filter(Boolean).join(' · ')}"></option>`).join('');function pmRunSearch(){const q=pmSearch.value.trim().toLowerCase();if(!q)return;const node=pmNodes.find(n=>[n.title,n.person,n.theory,n.author,n.note].filter(Boolean).join(' ').toLowerCase().includes(q));if(node)pmSelect(node.id,true)}pmSearch.addEventListener('change',pmRunSearch);pmSearch.addEventListener('keydown',e=>{if(e.key==='Enter')pmRunSearch()});
+      pmUpdateLanguageUI();pmRenderBackground();pmRenderSuper();pmRenderEdges();pmRenderNodes();requestAnimationFrame(pmFit);window.addEventListener('resize',pmFit);
+    </script>
+  </body>
+</html>
